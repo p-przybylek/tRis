@@ -1,0 +1,39 @@
+.skin-blue .main-header .logo {
+  font-weight: bold;
+  font-size: 24px;
+  width: 100%;
+  background-color: #a1cdbc;
+  color: #000000;
+} 
+
+.skin-blue .main-header .logo:hover {
+  background-color: #a1cdbc;
+}
+
+.home {
+ color: #000000;
+}
+.home:hover {
+ cursor: pointer; 
+ color: #000000;
+}
+
+.skin-blue .main-header .navbar {
+  background-color: #a1cdbc;
+  width: 100%;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle {
+  background-color: #a1cdbc;
+  color: #000000;
+  display: none;
+}
+
+.skin-blue .main-header .navbar .sidebar-toggle:hover{
+  background-color: #a1cdbc;
+  color: #000000;
+}  
+
+.content-wrapper {
+  background-color: #ffffff;
+}
