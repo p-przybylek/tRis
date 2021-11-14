@@ -37,3 +37,52 @@
 .content-wrapper {
   background-color: #ffffff;
 }
+
+#box-button-right {
+  float: right;
+}
+
+#box-button-left {
+  float: left;
+}
+
+.btn {
+  background-color: #a1cdbc;
+  color: #000000;
+  border-radius: 20px;
+  border: none;
+  text-align: center;
+  font-weight: bold;
+  font-size: 24px;
+  width: 100%;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.btn:active:hover:not([disabled]) {
+  background-color: #7fad9b;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  transform: translateY(-0.25em);
+}
+
+.btn:disabled {
+  background-color: #efefef;
+  color: #a6a6a6;
+  cursor: not-allowed;
+}
+
+.start-button {
+  width: 200px;
+}
+
+.view-and-vis-button {
+  width: 200px;
+}
+
+#box-select-data {
+  text-align: left;
+}
+
+.return-button {
+  background-color: #a6a6a6;
+}
