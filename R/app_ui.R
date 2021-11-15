@@ -1,7 +1,7 @@
 #' The application User-Interface
 #' 
 #' @param request Internal parameter for `{shiny}`.
-#' @import shiny shinydashboard
+#' @import shiny shinydashboard shinycssloaders DT
 #' @noRd
 app_ui <- function(request) {
   tagList(
@@ -10,9 +10,10 @@ app_ui <- function(request) {
     # UI elements
     shinydashboard::dashboardPage(title = "time seRies visualization",
                                   shinydashboard::dashboardHeader(title = tagList(tags[["a"]](div(id = "homeclick",
+                                                                                                  "VISUALIZATION AND ANALYSIS APP",
                                                                                                   onclick = "openTab('start')"),
                                                                                               href = NULL,
-                                                                                              "VISUALIZATION AND ANALYSIS APP",
+                                                                                              NULL,
                                                                                               title = "Homepage",
                                                                                               class = "home"),
                                                                                   tags[["script"]](shiny::HTML( "var openTab = function(tabName){
@@ -38,7 +39,29 @@ app_ui <- function(request) {
                                                               fluidRow(column(6, div(id = "box-button-right", actionButton("to_user_data_button", shiny::HTML("load own <br/> data"), class = "start-button"))),
                                                                        column(6, div(id = "box-button-left", actionButton("to_example_data_button", shiny::HTML("select example <br/> data"), class = "start-button"))))),
                                       shinydashboard::tabItem(tabName = "user_data",
-                                                              fluidRow()),
+                                                              fluidRow(column(12, align = "center",
+                                                                              selectInput("select_filetype", NULL,
+                                                                                          choices = c("Please select a type of file..." = "no_type", 
+                                                                                                      ".csv" = "csv",
+                                                                                                      ".txt" = "txt",
+                                                                                                      ".xlsx" = "xlsx"),
+                                                                                          selected = "no_type"))),
+                                                              fluidRow(column(12, align = "center",
+                                                                              textInput("select_separator", NULL,
+                                                                                        placeholder = "Please enter a separator..."))),
+                                                              fluidRow(column(12, align = "center",
+                                                                              fileInput("select_file", NULL, 
+                                                                                        accept = c("text/csv",
+                                                                                                   ".csv",
+                                                                                                   "text/plain",
+                                                                                                   ".txt",
+                                                                                                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                                                                                   ".xlsx"),
+                                                                                        buttonLabel = "Upload",
+                                                                                        placeholder = "Please choose a file..."))),
+                                                              fluidRow(column(4, div(id = "box-button-right1", actionButton("return_to_start_button1", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
+                                                                       column(4, align = "center", div(id = "box-button-center1", actionButton("to_view_data_button1", shiny::HTML("see the data <br/> in the table"), class = "view-and-vis-button"))),
+                                                                       column(4, div(id = "box-button-left1", actionButton("to_visualize_data_button1", shiny::HTML("see the data <br/> visualization"), class = "view-and-vis-button"))))),
                                       shinydashboard::tabItem(tabName = "example_data",
                                                               fluidRow(column(12, align = "center",
                                                                               selectInput("select_example_data", NULL,
@@ -46,15 +69,18 @@ app_ui <- function(request) {
                                                                                                       "covid-19 infection cases in Poland" = "covid_poland",
                                                                                                       "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
                                                                                           selected = "no_data"))),
-                                                              fluidRow(column(6, div(id = "box-button-right", actionButton("to_view_data_button", shiny::HTML("see the data <br/> in the table"), class = "view-and-vis-button"))),
-                                                                       column(6, div(id = "box-button-left", actionButton("to_visualize_data_button", shiny::HTML("see the data <br/> visualization"), class = "view-and-vis-button"))))),
+                                                              fluidRow(column(4, div(id = "box-button-right2", actionButton("return_to_start_button2", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
+                                                                       column(4, align = "center", div(id = "box-button-center2", actionButton("to_view_data_button2", shiny::HTML("see the data <br/> in the table"), class = "view-and-vis-button"))),
+                                                                       column(4, div(id = "box-button-left2", actionButton("to_visualize_data_button2", shiny::HTML("see the data <br/> visualization"), class = "view-and-vis-button"))))),
                                       shinydashboard::tabItem(tabName = "table_view",
-                                                              fluidRow(),
-                                                              fluidRow(column(12, div(id = "box-button-right", actionButton("return_to_select_data_button", shiny::HTML("return to previous page"), class = "return-button"))))),
+                                                              fluidRow(column(12, shinycssloaders::withSpinner(DT::dataTableOutput("data_table", width = 800), color="#efefef"))),
+                                                              fluidRow(column(12, align = "center", div(id = "box-button-return-select1", actionButton("return_to_select_data_button1", shiny::HTML("return to <br/> previous page"), class = "return-button"))))),
                                       shinydashboard::tabItem(tabName = "visualization", 
-                                                              fluidRow()),
+                                                              fluidRow(),
+                                                              fluidRow(column(12, align = "center", div(id = "box-button-return-select2", actionButton("return_to_select_data_button2", shiny::HTML("return to <br/> previous page"), class = "return-button"))))),
                                       shinydashboard::tabItem(tabName = "prediction", 
-                                                              fluidRow()))))
+                                                              fluidRow(),
+                                                              fluidRow(column(12, align = "center", div(id = "box-button-return-visualization", actionButton("return_to_visualization_data_button", shiny::HTML("return to <br/> previous page"), class = "return-button"))))))))
   )
 }
 
