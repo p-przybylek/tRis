@@ -56,14 +56,6 @@
   transform: translate(-50%, -50%);
 }
 
-#box-button-right {
-  float: right;
-}
-
-#box-button-left {
-  float: left;
-}
-
 .btn {
   background-color: #a1cdbc;
   color: #000000;
@@ -72,7 +64,7 @@
   text-align: center;
   font-weight: bold;
   font-size: 22px;
-  width: 100%;
+  width: 180px;
   margin-top: 20px;
   cursor: pointer;
 }
@@ -89,17 +81,8 @@
   transform: translateY(-0.25em);
 }
 
-.start-button {
-  width: 180px;
-}
-
-.view-and-vis-button {
-  width: 180px;
-}
-
 .return-button {
   background-color: #a6a6a6;
-  width: 180px;
 }
 
 .return-button:hover:not([disabled]) {

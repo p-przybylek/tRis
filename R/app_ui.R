@@ -25,7 +25,7 @@ app_ui <- function(request) {
                                                                                                                         };
                                                                                                                         });
                                                                                                                         }"))), 
-                                                                  titleWidth = 1400),
+                                                                  titleWidth = "100%"),
                                   shinydashboard::dashboardSidebar(disable = TRUE,
                                                                    shinydashboard::sidebarMenu(id = "interfaces",
                                                                                                shinydashboard::menuItem("The start interface", tabName = "start"),
