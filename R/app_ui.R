@@ -1,7 +1,9 @@
 #' The application User-Interface
 #' 
 #' @param request Internal parameter for `{shiny}`.
-#' @import shiny shinydashboard shinycssloaders DT
+#' @import shiny shinydashboard
+#' @importFrom DT dataTableOutput
+#' @importFrom shinycssloaders withSpinner
 #' @noRd
 app_ui <- function(request) {
   tagList(
@@ -89,8 +91,10 @@ app_ui <- function(request) {
 #' This function is internally used to add external 
 #' resources inside the Shiny application.
 #' 
-#' @import shiny shinyjs shinyalert
+#' @import shiny 
 #' @importFrom golem add_resource_path activate_js favicon bundle_resources
+#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyalert useShinyalert
 #' @noRd
 golem_add_external_resources <- function(){
   

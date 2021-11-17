@@ -1,13 +1,25 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
-#' @import shiny shinyjs shinydashboard shinyalert DT utils
+#' @import shiny shinydashboard
+#' @importFrom shinyalert shinyalert
+#' @importFrom shinyjs onclick enable disable
+#' @importFrom DT renderDataTable
+#' @importFrom utils tail
 #' @noRd
 app_server <- function(input, output, session) {
 
   ### the start interface 
   
   data_load <- reactiveVal(NA)
+  
+  shinyjs::onclick("homeclick", { # going to loading user data interface
+    updateSelectInput(session, "select_example_data", NULL,
+                      choices = c("Please select the data..." = "no_data",
+                                  "covid-19 infection cases in Poland" = "covid_poland",
+                                  "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
+                      selected = "no_data")
+  })
   
   shinyjs::onclick("to_user_data_button", { # going to loading user data interface
     new_interface <- switch(input[["interfaces"]],
@@ -122,7 +134,7 @@ app_server <- function(input, output, session) {
   })
   
   output[["data_table"]] <- DT::renderDataTable({
-    utils::head(dataset(), 10)
+    utils::tail(dataset(), 10)
   },
   options = list(scrollX = TRUE,
                  deferRender = TRUE,
