@@ -17,6 +17,7 @@ hiv<-hiv%>%
          Prevalence=as.integer(round(Prevalence)))
 
 
-deaths_and_new_cases_of_hiv<-hiv
+deaths_and_new_cases_hiv<-hiv
+save(deaths_and_new_cases_of_hiv, file = "data/deaths_and_new_cases_hiv.rda", compress='xz')
 
 usethis::use_data(deaths_and_new_cases_hiv, overwrite = TRUE)

@@ -14,7 +14,7 @@ f<-covid_files[1]
 covid_poland<-read.csv2(f, fileEncoding = "UTF-8")
 
 ### if the date column is missing, we get the date from the name of the file
-if(!"stan_rekordu_na" %in% colnames(temp) ){
+if(!"stan_rekordu_na" %in% colnames(covid_poland) ){
   filename_length<-nchar(f)
   date<-substr(f,filename_length-37,filename_length-30)
   date_clean<-as.character(as.Date(paste(substr(date,1,4),"-", substr(date,5,6),"-",substr(date,7,8), sep=""))-1)
@@ -76,5 +76,7 @@ covid_poland<-covid_poland%>%
 colnames(covid_poland)<-c('voivodeship', 'district_city', 'cases', 'cases_per_10_thousand_citizens', 'deaths',
                           'deaths_without_comorbid_diseases', 'deaths_with_comorbid_diseases', 'primary_care_physician_commisions',
                           'people_in_quarantine', 'tests', 'positive_tests', 'negative_tests', 'territory', 'date', 'convalescents')
+
+save(covid_poland, file = "data/covid_poland.rda", compress='xz')
   
 usethis::use_data(covid_poland, overwrite = TRUE)
