@@ -13,7 +13,7 @@ app_server <- function(input, output, session) {
   
   data_load <- reactiveVal(NA)
   
-  shinyjs::onclick("homeclick", { # going to loading user data interface
+  shinyjs::onclick("homeclick", { # reset app
     updateSelectInput(session, "select_example_data", NULL,
                       choices = c("Please select the data..." = "no_data",
                                   "covid-19 infection cases in Poland" = "covid_poland",
