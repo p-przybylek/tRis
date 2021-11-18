@@ -3,7 +3,7 @@ Title: Time Series Visualization
 Version: 0.0.0.9000
 Authors@R: c(person('Paulina', 'Przybyłek', email = 'pp.paulinaprzybylek@gmail.com', role = c('cre', 'aut')),
              person('Martyna', 'Majchrzak', email = 'martyna.majchrzak19@gmail.com', role = 'aut'),
-             person('Elżbieta', 'Sienkiewicz', email = '', role = c('aut', 'ths')))
+             person('Elżbieta', 'Sienkiewicz', email = 'elzbieta.sienkiewicz@pw.edu.pl', role = c('aut', 'ths')))
 Description: Shiny application for the visualization and analysis of spatio-temporal medical or biological data.
 License: GPL-3
 Depends: R (>= 4.1.0)
