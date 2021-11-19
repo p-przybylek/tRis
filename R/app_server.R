@@ -74,26 +74,6 @@ app_server <- function(input, output, session) {
                       selected = "no_data")
   })
   
-  dataset <- reactive({ # load data to analyse and visualization
-    if(data_load() == "example_data"){
-      example_data_name <- input[["select_example_data"]]
-      if(example_data_name != "no_data"){
-        e <- new.env()
-        name <- load(file.path("data", paste0(example_data_name, ".rda")), envir = e)
-        
-        # display a confirmation
-        shinyalert::shinyalert("Data loaded successfully",
-                               type = "success",
-                               confirmButtonText = "OK",
-                               confirmButtonCol = "#a6a6a6")
-        
-        return(e[[name]])
-      }else{
-        return(NULL)
-      }
-    }
-  })
-  
   observeEvent(input[["select_example_data"]], { # when example data isn't choose, buttons to view and visualization interfaces are disabled
     if((input[["select_example_data"]] != "no_data") && (!is.null(dataset()))){
       shinyjs::enable("to_view_data_button2")
@@ -118,6 +98,31 @@ app_server <- function(input, output, session) {
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
   
+  ### loading a dataset
+  
+  dataset <- reactive({ # load data to analyse and visualization
+    if(data_load() == "example_data"){
+      example_data_name <- input[["select_example_data"]]
+      if(example_data_name != "no_data"){
+        e <- new.env()
+        name <- load(file.path("data", paste0(example_data_name, ".rda")), envir = e)
+        
+        # display a confirmation
+        shinyalert::shinyalert("Data loaded successfully",
+                               type = "success",
+                               confirmButtonText = "OK",
+                               confirmButtonCol = "#a6a6a6")
+        
+        return(e[[name]])
+      }else{
+        return(NULL)
+      }
+    }
+    if(data_load() == "user_data"){
+      #ToDo
+    }
+  })
+  
   ### the view data in a table interface
   
   shinyjs::onclick("return_to_select_data_button1", { # back to loading example or user data interface
@@ -125,7 +130,7 @@ app_server <- function(input, output, session) {
       new_interface <- switch(input[["interfaces"]],
                               "table_view" = "example_data",
                               "example_data" = "table_view")
-    }else{
+    }else if(data_load() == "user_data"){
       new_interface <- switch(input[["interfaces"]],
                               "table_view" = "user_data",
                               "user_data" = "table_view")
@@ -154,7 +159,7 @@ app_server <- function(input, output, session) {
       new_interface <- switch(input[["interfaces"]],
                               "visualization" = "example_data",
                               "example_data" = "visualization")
-    }else{
+    }else if(data_load() == "user_data"){
       new_interface <- switch(input[["interfaces"]],
                               "visualization" = "user_data",
                               "user_data" = "visualization")

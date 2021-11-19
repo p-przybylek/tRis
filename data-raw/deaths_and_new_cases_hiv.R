@@ -1,8 +1,10 @@
 ## code to prepare `deaths_and_new_cases_hiv` dataset goes here
 
 ### libraries
-if (!require(dplyr)) install.packages(dplyr)
+if (!require(dplyr)) install.packages("dplyr")
 library(dplyr)
+if (!require(tidyr)) install.packages("data.table")
+library(data.table)
 
 ### loading the dataset from csv
 hiv<-read.csv("data-raw/deaths-and-new-cases-of-hiv.csv")
@@ -18,6 +20,5 @@ hiv<-hiv%>%
 
 
 deaths_and_new_cases_hiv<-hiv
-save(deaths_and_new_cases_of_hiv, file = "data/deaths_and_new_cases_hiv.rda", compress='xz')
-
-usethis::use_data(deaths_and_new_cases_hiv, overwrite = TRUE)
+deaths_and_new_cases_hiv <- as.data.table(deaths_and_new_cases_hiv)
+usethis::use_data(deaths_and_new_cases_hiv, overwrite = TRUE, compress='xz')

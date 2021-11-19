@@ -1,10 +1,12 @@
 ## code to prepare `covid_poland` dataset goes here
 
 ### libraries
-if (!require(dplyr)) install.packages(dplyr)
+if (!require(dplyr)) install.packages("dplyr")
 library(dplyr)
-if (!require(tidyr)) install.packages(tidyr)
+if (!require(tidyr)) install.packages("tidyr")
 library(tidyr)
+if (!require(tidyr)) install.packages("data.table")
+library(data.table)
 
 ### list of file names in 'covid_poland' directory
 covid_files <- list.files(path="data-raw/covid_poland", pattern="*.csv", full.names=TRUE)
@@ -67,16 +69,19 @@ for (i in 1:length(covid_files)) {
   covid_poland<-bind_rows(covid_poland,temp)
 } 
 
-# dropping an uninteresting column
+### dropping an uninteresting column
 covid_poland<-covid_poland%>%
   select(!liczba_pozostalych_testow)
+
+### changing encoding 
+covid_poland$wojewodztwo <- iconv(covid_poland$wojewodztwo, 'Windows-1250', 'UTF-8')
+covid_poland$powiat_miasto <- iconv(covid_poland$powiat_miasto, 'Windows-1250', 'UTF-8')
 
 ### changing the column names to english
 
 colnames(covid_poland)<-c('voivodeship', 'district_city', 'cases', 'cases_per_10_thousand_citizens', 'deaths',
                           'deaths_without_comorbid_diseases', 'deaths_with_comorbid_diseases', 'primary_care_physician_commisions',
                           'people_in_quarantine', 'tests', 'positive_tests', 'negative_tests', 'territory', 'date', 'convalescents')
-
-save(covid_poland, file = "data/covid_poland.rda", compress='xz')
   
-usethis::use_data(covid_poland, overwrite = TRUE)
+covid_poland <- as.data.table(covid_poland)
+usethis::use_data(covid_poland, overwrite = TRUE, compress='xz')
