@@ -1,9 +1,15 @@
-# tRis - time seRies visualisation
+# tRis - time seRies visualization
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-**tRiS** is a shiny app for visualizing and analyzing spatio-temporal medical or biological data. This application enables visualization with the use of maps and analysis, including prediction of next measurements, any (properly formatted) numerical data with spatial and temporal attributes. The purpose of the application is to make it easier to understand certain dependencies in the data and find the information you want. The generalization of the operation to use any data allows the application to be used in various projects or analyzes, making it more useful for a larger group of recipients.
+**tRiS** is a shiny app for visualizing and analyzing spatio-temporal medical or biological data. This application enables visualization with the use of maps and analysis, including prediction of next measurements, any (properly formatted) numerical data with spatial and temporal attributes. The user can perform all the functions of the application on the example of datasets included in the app. 
+
+The purpose of the application is to make it easier to understand certain dependencies in the data and find the information you want. The generalization of the operation to use any data allows the application to be used in various projects or analyzes, making it more useful for a larger group of recipients.
+
+### Example datasets
+
+ToDo
 
 ## Installation
 
