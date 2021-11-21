@@ -83,7 +83,7 @@ app_ui <- function(request) {
                                       shinydashboard::tabItem(tabName = "prediction", 
                                                               fluidRow(),
                                                               fluidRow(column(12, align = "center", div(id = "box-button-return-visualization", actionButton("return_to_visualization_data_button", shiny::HTML("return to <br/> previous page"), class = "return-button")))))))),
-    tags[["footer"]]("Made as part of the Diploma Thesis", class = "footer")
+    tags[["footer"]]("Made as part of a BSc Thesis", class = "footer")
   )
 }
 
