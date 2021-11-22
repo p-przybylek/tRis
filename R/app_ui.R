@@ -4,7 +4,9 @@
 #' @import shiny shinydashboard
 #' @importFrom DT dataTableOutput
 #' @importFrom shinycssloaders withSpinner
+#' @importFrom shinyjs useShinyjs disabled
 #' @noRd
+#' 
 app_ui <- function(request) {
   tagList(
     # adding external resources
@@ -42,28 +44,58 @@ app_ui <- function(request) {
                                                                        column(6, div(id = "box-button-left", actionButton("to_example_data_button", shiny::HTML("select example <br/> data"), class = "start-button"))))),
                                       shinydashboard::tabItem(tabName = "user_data",
                                                               fluidRow(column(12, align = "center",
+                                                                              
                                                                               selectInput("select_filetype", NULL,
                                                                                           choices = c("Please select a type of file..." = "no_type", 
                                                                                                       ".csv" = "csv",
                                                                                                       ".txt" = "txt",
                                                                                                       ".xlsx" = "xlsx"),
                                                                                           selected = "no_type"))),
+                                                              
+                                                              # fluidRow(column(12, align = "center",
+                                                              #                 textInput("select_separator", NULL,
+                                                              #                           placeholder = "Please enter a separator..."))),
+                                                              
                                                               fluidRow(column(12, align = "center",
-                                                                              textInput("select_separator", NULL,
-                                                                                        placeholder = "Please enter a separator..."))),
+                                                                              selectInput("select_separator", NULL,
+                                                                                           choices=c("Please select a separator..." = "no_sep", 
+                                                                                                     'Comma'=',',
+                                                                                                     'Semicolon'=';',
+                                                                                                     'Tab'='\t',
+                                                                                                     'Space'=' '),
+                                                                                           selected='no_sep'))),
                                                               fluidRow(column(12, align = "center",
-                                                                              fileInput("select_file", NULL, 
-                                                                                        accept = c("text/csv",
-                                                                                                   ".csv",
-                                                                                                   "text/plain",
-                                                                                                   ".txt",
-                                                                                                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                                                                                   ".xlsx"),
-                                                                                        buttonLabel = "Upload",
-                                                                                        placeholder = "Please choose a file..."))),
-                                                              fluidRow(column(4, div(id = "box-button-right1", actionButton("return_to_start_button1", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
-                                                                       column(4, align = "center", div(id = "box-button-center1", actionButton("to_view_data_button1", shiny::HTML("see the data <br/> in the table"), class = "view-and-vis-button"))),
-                                                                       column(4, div(id = "box-button-left1", actionButton("to_visualize_data_button1", shiny::HTML("see the data <br/> visualization"), class = "view-and-vis-button"))))),
+                                                                              uiOutput('select_file'),
+                                                                              # fileInput("select_file", NULL, 
+                                                                              #           accept = c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                                                                              #           buttonLabel = "Upload",
+                                                                              #           placeholder = "Please choose a file...")
+                                                                              )),
+                                                              fluidRow(column(12, align = "center",
+                                                                              helpText('The maximum filesize is 1GB'))),
+                                                              # check the values is select_file - for debugging purposes
+                                                              # fluidRow(column(12, align = "center",  
+                                                              #                 uiOutput("file_summary"))),
+                                                              fluidRow(column(4, div(id = "box-button-right1", actionButton("return_to_start_button1", 
+                                                                                                                            shiny::HTML("return to <br/> previous page"), 
+                                                                                                                            class = "return-button"))),
+                                                                       column(4, align = "center", div(id = "box-button-center1", 
+                                                                                                       useShinyjs(), # setup shinyjs to create buttons disabled by default
+                                                                                                       shinyjs::disabled(
+                                                                                                         actionButton("to_view_data_button1", shiny::HTML("see the data <br/> in the table"), class = "view-and-vis-button"))
+                                                                                                       )
+                                                                              ),
+                                                                       column(4, div(id = "box-button-left1", 
+                                                                                     useShinyjs(), # setup shinyjs to create buttons disabled by default
+                                                                                     shinyjs::disabled(
+                                                                                       actionButton("to_visualize_data_button1", 
+                                                                                      shiny::HTML("see the data <br/> visualization"), 
+                                                                                      class = "view-and-vis-button")
+                                                                                      )
+                                                                                     )
+                                                                              )
+                                                                       )
+                                                              ),
                                       shinydashboard::tabItem(tabName = "example_data",
                                                               fluidRow(column(12, align = "center",
                                                                               selectInput("select_example_data", NULL,

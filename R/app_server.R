@@ -6,8 +6,17 @@
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail
+#' @importFrom openxlsx read.xlsx
 #' @noRd
+#' 
+
+
+
 app_server <- function(input, output, session) {
+  
+  ### option to increase input limit to 1GB
+  
+  options(shiny.maxRequestSize = 1024*1024^2)
 
   ### the start interface 
   
@@ -39,12 +48,112 @@ app_server <- function(input, output, session) {
   
   ### the loading user data interface
   
+
+  
   shinyjs::onclick("return_to_start_button1", { # back to the start interface
     new_interface <- switch(input[["interfaces"]],
                             "user_data" = "start",
                             "start" = "user_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
+    
+    # return all inputs and buttons to default state
+    updateSelectInput(session, "select_filetype", NULL,
+                      choices = c("Please select a type of file..." = "no_type", 
+                                  ".csv" = "csv",
+                                  ".txt" = "txt",
+                                  ".xlsx" = "xlsx"),
+                      selected = "no_type")
+    updateSelectInput(session, "select_separator", NULL,
+                choices=c("Please select a separator..." = "no_sep", 
+                          'Comma'=',',
+                          'Semicolon'=';',
+                          'Tab'='\t',
+                          'Space'=' '),
+                selected='no_sep')
+    shinyjs::disable("to_view_data_button1")
+    shinyjs::disable("to_visualize_data_button1")
+    
+    
   })
+  output$select_file = renderUI({ # render select file
+    
+    # validating filetypes by extensions
+    # extension_list<-ifelse(input[["select_separator"]]=="csv",
+    #                        c("text/csv",'csv'),
+    #                        ifelse(
+    #                          input[["select_separator"]]=="txt",
+    #                          c("text/plain",".txt"),
+    #                          ifelse(
+    #                            input[["select_separator"]]=="xlsx",
+    #                            c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+    #                            c("csv"))))
+    
+    
+    extension_list<-c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+    fileInput("select_file", NULL,
+              accept = extension_list,
+              buttonLabel = "Upload",
+              placeholder = "Please choose a file...")
+    
+  })
+  observeEvent({input[["return_to_start_button1"]]},{ # reload fileInput when user returns to start panel
+    output$select_file = renderUI({
+
+      extension_list<-c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+      fileInput("select_file", NULL,
+                accept = extension_list,
+                buttonLabel = "Upload",
+                placeholder = "Please choose a file...")
+      
+    })
+    
+  })
+
+  observeEvent( # when filetype is xlsx, separator options are disabled
+    {
+      input[["select_filetype"]]
+    }, 
+    { 
+      if(input[["select_filetype"]]=='xlsx'){
+        shinyjs::disable("select_separator")
+      }else{
+        shinyjs::enable("select_separator")
+      }
+    })
+  
+
+  
+  
+  observeEvent( # when filetype and separator aren't chosen, file select is disabled
+    {
+      input[["select_filetype"]] 
+      input[["select_separator"]]}, 
+    { 
+    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" ))||
+          input[["select_filetype"]]== "xlsx"){
+      shinyjs::enable("select_file")
+    }else{
+      shinyjs::disable("select_file")
+    }
+  })
+  
+
+  observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
+    if(!is.null(dataset())){
+      shinyjs::enable("to_view_data_button1")
+      shinyjs::enable("to_visualize_data_button1")
+    }else{
+      shinyjs::disable("to_view_data_button1")
+      shinyjs::disable("to_visualize_data_button1")
+    }
+  })
+  
+  
+  # check the values is select_file - for debugging purposes
+  # output[["file_summary"]]<-renderTable({
+  #   input[['select_file']]
+  # })
+
   
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
@@ -74,7 +183,7 @@ app_server <- function(input, output, session) {
                       selected = "no_data")
   })
   
-  observeEvent(input[["select_example_data"]], { # when example data isn't choose, buttons to view and visualization interfaces are disabled
+  observeEvent(input[["select_example_data"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
     if((input[["select_example_data"]] != "no_data") && (!is.null(dataset()))){
       shinyjs::enable("to_view_data_button2")
       shinyjs::enable("to_visualize_data_button2")
@@ -99,6 +208,7 @@ app_server <- function(input, output, session) {
   })
   
   ### loading a dataset
+
   
   dataset <- reactive({ # load data to analyse and visualization
     if(data_load() == "example_data"){
@@ -119,8 +229,93 @@ app_server <- function(input, output, session) {
       }
     }
     if(data_load() == "user_data"){
-      #ToDo
-    }
+      data_file <- input[["select_file"]]
+      if(is.null(data_file)){return()}
+      
+      ### check filetype
+      
+      filetype<-input[['select_filetype']]
+      if(filetype=='csv'){
+        
+          if( data_file$type=="text/csv"){
+            user_dataset<-read.csv(file=data_file$datapath,
+                                   sep=input[['select_separator']],
+                                   header=TRUE)
+            # display a confirmation
+            shinyalert::shinyalert("Data loaded successfully",
+                                   type = "success",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+          }
+          else{
+            user_dataset<-NULL
+            # display error
+            shinyalert::shinyalert("Invalid extension type",
+                                   type = "error",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+
+          }
+
+        }
+        else if(filetype=='txt'){
+
+          if( data_file$type=="text/plain"){
+            user_dataset<-read.table(file=data_file$datapath,
+                                     sep=input[['select_separator']],
+                                     header=TRUE)
+            # display a confirmation
+            shinyalert::shinyalert("Data loaded successfully",
+                                   type = "success",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+          }
+          else{
+            user_dataset<-NULL
+            # display error
+            shinyalert::shinyalert("Invalid extension type",
+                                   type = "error",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+
+          }
+          
+          
+        }
+        else if(filetype=='xlsx'){
+
+          if( data_file$type=="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
+            user_dataset<-openxlsx::read.xlsx(data_file$datapath)
+            # display a confirmation
+            shinyalert::shinyalert("Data loaded successfully",
+                                   type = "success",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+          }
+          else{
+            user_dataset<-NULL
+            # display error
+            shinyalert::shinyalert("Invalid extension type",
+                                   type = "error",
+                                   confirmButtonText = "OK",
+                                   confirmButtonCol = "#a6a6a6")
+
+          }
+          
+        }
+      else{
+        user_dataset<-NULL
+        # display error
+        shinyalert::shinyalert("Invalid extension type",
+                               type = "error",
+                               confirmButtonText = "OK",
+                               confirmButtonCol = "#a6a6a6")
+      }
+        
+        return(user_dataset)
+        
+      }
+    
   })
   
   ### the view data in a table interface
