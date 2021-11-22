@@ -5,7 +5,7 @@
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom DT renderDataTable
-#' @importFrom utils tail
+#' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
 #' @noRd
 #' 
@@ -238,7 +238,7 @@ app_server <- function(input, output, session) {
       if(filetype=='csv'){
         
           if( data_file$type=="text/csv"){
-            user_dataset<-read.csv(file=data_file$datapath,
+            user_dataset<-utils::read.csv(file=data_file$datapath,
                                    sep=input[['select_separator']],
                                    header=TRUE)
             # display a confirmation
@@ -261,7 +261,7 @@ app_server <- function(input, output, session) {
         else if(filetype=='txt'){
 
           if( data_file$type=="text/plain"){
-            user_dataset<-read.table(file=data_file$datapath,
+            user_dataset<-utils::read.table(file=data_file$datapath,
                                      sep=input[['select_separator']],
                                      header=TRUE)
             # display a confirmation
