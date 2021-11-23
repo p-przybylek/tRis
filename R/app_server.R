@@ -210,7 +210,7 @@ app_server <- function(input, output, session) {
   ### loading a dataset
 
   
-  dataset <- reactive({ # load data to analyse and visualization
+  dataset <- reactive({ # load data to analyse and visualize
     if(data_load() == "example_data"){
       example_data_name <- input[["select_example_data"]]
       if(example_data_name != "no_data"){
@@ -232,7 +232,7 @@ app_server <- function(input, output, session) {
       data_file <- input[["select_file"]]
       if(is.null(data_file)){return()}
       
-      ### check filetype
+      ### check filetype and alert if invalid
       
       filetype<-input[['select_filetype']]
       if(filetype=='csv'){
@@ -246,14 +246,18 @@ app_server <- function(input, output, session) {
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::enable("to_view_data_button1")
+            shinyjs::enable("to_visualize_data_button1")
           }
           else{
             user_dataset<-NULL
             # display error
-            shinyalert::shinyalert("Invalid extension type",
+            shinyalert::shinyalert("Invalid extension, choose a .csv file or a valid extension type for your file",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::disable("to_view_data_button1")
+            shinyjs::disable("to_visualize_data_button1")
 
           }
 
@@ -269,14 +273,18 @@ app_server <- function(input, output, session) {
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::enable("to_view_data_button1")
+            shinyjs::enable("to_visualize_data_button1")
           }
           else{
             user_dataset<-NULL
             # display error
-            shinyalert::shinyalert("Invalid extension type",
+            shinyalert::shinyalert("Invalid extension, choose a .txt file or a valid extension type for your file",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::disable("to_view_data_button1")
+            shinyjs::disable("to_visualize_data_button1")
 
           }
           
@@ -291,14 +299,18 @@ app_server <- function(input, output, session) {
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::enable("to_view_data_button1")
+            shinyjs::enable("to_visualize_data_button1")
           }
           else{
             user_dataset<-NULL
             # display error
-            shinyalert::shinyalert("Invalid extension type",
+            shinyalert::shinyalert("Invalid extension, choose a .xlsx file or a valid extension type for your file",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            shinyjs::disable("to_view_data_button1")
+            shinyjs::disable("to_visualize_data_button1")
 
           }
           
@@ -310,6 +322,8 @@ app_server <- function(input, output, session) {
                                type = "error",
                                confirmButtonText = "OK",
                                confirmButtonCol = "#a6a6a6")
+        shinyjs::disable("to_view_data_button1")
+        shinyjs::disable("to_visualize_data_button1")
       }
         
         return(user_dataset)
