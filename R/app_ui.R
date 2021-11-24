@@ -39,7 +39,8 @@ app_ui <- function(request) {
                                   shinydashboard::dashboardBody(
                                     shinydashboard::tabItems(
                                       shinydashboard::tabItem(tabName = "start",
-                                                              fluidRow(column(12, includeMarkdown(file.path("inst", "app", "App_description.md")))),
+                                                              fluidRow(column(12, align = "center", 
+                                                                              div(id = "start-text", includeMarkdown(file.path("inst", "app", "App_description.md"))))),
                                                               fluidRow(column(6, div(id = "box-button-right", actionButton("to_user_data_button", shiny::HTML("load own <br/> data"), class = "start-button"))),
                                                                        column(6, div(id = "box-button-left", actionButton("to_example_data_button", shiny::HTML("select example <br/> data"), class = "start-button"))))),
                                       shinydashboard::tabItem(tabName = "user_data",
