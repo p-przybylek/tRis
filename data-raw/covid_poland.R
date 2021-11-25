@@ -73,15 +73,15 @@ for (i in 1:length(covid_files)) {
 covid_poland<-covid_poland%>%
   select(!liczba_pozostalych_testow)
 
-### changing encoding 
-covid_poland$wojewodztwo <- iconv(covid_poland$wojewodztwo, 'Windows-1250', 'UTF-8')
-covid_poland$powiat_miasto <- iconv(covid_poland$powiat_miasto, 'Windows-1250', 'UTF-8')
-
 ### changing the column names to english
 
 colnames(covid_poland)<-c('voivodeship', 'district_city', 'cases', 'cases_per_10_thousand_citizens', 'deaths',
                           'deaths_without_comorbid_diseases', 'deaths_with_comorbid_diseases', 'primary_care_physician_commisions',
                           'people_in_quarantine', 'tests', 'positive_tests', 'negative_tests', 'territory', 'date', 'convalescents')
-  
+
+### changing encoding 
+covid_poland$wojewodztwo <- iconv(covid_poland$voivodeship, 'Windows-1250', 'UTF-8')
+covid_poland$powiat_miasto <- iconv(covid_poland$district_city, 'Windows-1250', 'UTF-8')
+
 covid_poland <- as.data.table(covid_poland)
 usethis::use_data(covid_poland, overwrite = TRUE, compress='xz')
