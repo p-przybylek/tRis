@@ -52,11 +52,7 @@ app_ui <- function(request) {
                                                                                                       ".txt" = "txt",
                                                                                                       ".xlsx" = "xlsx"),
                                                                                           selected = "no_type"))),
-                                                              
-                                                              # fluidRow(column(12, align = "center",
-                                                              #                 textInput("select_separator", NULL,
-                                                              #                           placeholder = "Please enter a separator..."))),
-                                                              
+                                                       
                                                               fluidRow(column(12, align = "center",
                                                                               selectInput("select_separator", NULL,
                                                                                            choices=c("Please select a separator..." = "no_sep", 
@@ -66,17 +62,9 @@ app_ui <- function(request) {
                                                                                                      'Space'=' '),
                                                                                            selected='no_sep'))),
                                                               fluidRow(column(12, align = "center",
-                                                                              uiOutput('select_file'),
-                                                                              # fileInput("select_file", NULL, 
-                                                                              #           accept = c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                                                                              #           buttonLabel = "Upload",
-                                                                              #           placeholder = "Please choose a file...")
-                                                                              )),
+                                                                              uiOutput('select_file'))),
                                                               fluidRow(column(12, align = "center",
                                                                               helpText('The maximum filesize is 1GB'))),
-                                                              # check the values is select_file - for debugging purposes
-                                                              # fluidRow(column(12, align = "center",  
-                                                              #                 uiOutput("file_summary"))),
                                                               fluidRow(column(4, div(id = "box-button-right1", actionButton("return_to_start_button1", 
                                                                                                                             shiny::HTML("return to <br/> previous page"), 
                                                                                                                             class = "return-button"))),

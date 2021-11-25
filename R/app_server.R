@@ -48,8 +48,6 @@ app_server <- function(input, output, session) {
   
   ### the loading user data interface
   
-
-  
   shinyjs::onclick("return_to_start_button1", { # back to the start interface
     new_interface <- switch(input[["interfaces"]],
                             "user_data" = "start",
@@ -76,30 +74,32 @@ app_server <- function(input, output, session) {
     
   })
   output$select_file = renderUI({ # render select file
-    
-    # validating filetypes by extensions
-    # extension_list<-ifelse(input[["select_separator"]]=="csv",
-    #                        c("text/csv",'csv'),
-    #                        ifelse(
-    #                          input[["select_separator"]]=="txt",
-    #                          c("text/plain",".txt"),
-    #                          ifelse(
-    #                            input[["select_separator"]]=="xlsx",
-    #                            c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-    #                            c("csv"))))
-    
-    
-    extension_list<-c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
-    fileInput("select_file", NULL,
+
+    # validate extension list based on the chosen filetype
+    extension_list<-switch(input[["select_filetype"]],
+                   "csv" = c("text/csv",'csv'),
+                   "txt" = c("text/plain",".txt"),
+                   "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                   "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+                   )
+
+      fileInput("select_file", NULL,
               accept = extension_list,
               buttonLabel = "Upload",
               placeholder = "Please choose a file...")
-    
+
   })
+  
   observeEvent({input[["return_to_start_button1"]]},{ # reload fileInput when user returns to start panel
     output$select_file = renderUI({
 
-      extension_list<-c("text/csv",'csv',"text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+      # validate extension list based on the chosen filetype
+      extension_list<-switch(input[["select_filetype"]],
+                             "csv" = c("text/csv",'csv'),
+                             "txt" = c("text/plain",".txt"),
+                             "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                             "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+      )
       fileInput("select_file", NULL,
                 accept = extension_list,
                 buttonLabel = "Upload",
@@ -121,7 +121,6 @@ app_server <- function(input, output, session) {
       }
     })
   
-
   
   
   observeEvent( # when filetype and separator aren't chosen, file select is disabled
@@ -148,12 +147,6 @@ app_server <- function(input, output, session) {
     }
   })
   
-  
-  # check the values is select_file - for debugging purposes
-  # output[["file_summary"]]<-renderTable({
-  #   input[['select_file']]
-  # })
-
   
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],

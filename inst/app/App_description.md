@@ -6,9 +6,9 @@ p {text-align: justify; font-size: 18px;}
 ### <b>Welcome to tRis!</b>
 
 </br>
-<p> This is an application for the visualization and analysis of spatio-temporal data. It is dedicated to people dealing with medical or biological data. </p>
+<p> This app allows you to visualize and analyze spatio-temporal data. It is dedicated to people dealing with medical or biological datasets. </p>
 
-<p> You can use the application to analyze example data or load your own. tRis visualizes the data using maps and enables the visualization of the time series with the prediction of the successive measurements for the selected area of the map. </p>
+<p> You can use this application to analyze example data or load your own. tRis visualizes the data using maps, enables the visualization of the individual time series and predicts successive values of series for the selected area. </p>
 </br>
 
 ### <b>Let's get started!</b>
