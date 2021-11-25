@@ -13,7 +13,7 @@ The purpose of the application is to facilitate the understanding of certain dep
 
 Daily coronavirus data from a Polish goverment website archive. 
 Source: https://www.gov.pl/web/koronawirus/wykaz-zarazen-koronawirusem-sars-cov-2
-License: Creative Commons Attribution 3.0 Poland\
+License: Creative Commons Attribution 3.0 Poland.
 
 2. Deaths and new cases of HIV
 
