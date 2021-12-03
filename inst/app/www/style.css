@@ -105,6 +105,22 @@
   text-align: right;
 }
 
+#box-button-left1 {
+  text-align: left;
+}
+
+#box-button-right1 {
+  text-align: right;
+}
+
+#box-button-left2 {
+  text-align: left;
+}
+
+#box-button-right2 {
+  text-align: right;
+}
+
 .return-button {
   background-color: #a6a6a6;
 }
@@ -137,4 +153,20 @@
 
 .progress-bar {
   background-color: #a1cdbc;
+}
+
+.well {
+  min-width: 200px;
+}
+
+#map_visualization {
+  min-width: 800px;
+}
+
+#box-button-return-select2 {
+  text-align: right;
+}
+
+#box-button-go-prediction {
+  text-align: left;
 }

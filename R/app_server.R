@@ -73,32 +73,32 @@ app_server <- function(input, output, session) {
     
     
   })
-  output$select_file = renderUI({ # render select file
+  output[["select_file"]] <- renderUI({ # render select file
 
     # validate extension list based on the chosen filetype
-    extension_list<-switch(input[["select_filetype"]],
-                   "csv" = c("text/csv",'csv'),
-                   "txt" = c("text/plain",".txt"),
-                   "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                   "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
-                   )
+    extension_list <- switch(input[["select_filetype"]],
+                             "csv" = c("text/csv",'csv'),
+                             "txt" = c("text/plain",".txt"),
+                             "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                             "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+                             )
 
-      fileInput("select_file", NULL,
+    fileInput("select_file", NULL,
               accept = extension_list,
               buttonLabel = "Upload",
               placeholder = "Please choose a file...")
 
   })
   
-  observeEvent({input[["return_to_start_button1"]]},{ # reload fileInput when user returns to start panel
-    output$select_file = renderUI({
+  observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
+    output[["select_file"]] <- renderUI({
 
       # validate extension list based on the chosen filetype
-      extension_list<-switch(input[["select_filetype"]],
-                             "csv" = c("text/csv",'csv'),
-                             "txt" = c("text/plain",".txt"),
-                             "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                             "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+      extension_list <- switch(input[["select_filetype"]],
+                               "csv" = c("text/csv",'csv'),
+                               "txt" = c("text/plain",".txt"),
+                               "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                               "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
       )
       fileInput("select_file", NULL,
                 accept = extension_list,
@@ -109,11 +109,7 @@ app_server <- function(input, output, session) {
     
   })
 
-  observeEvent( # when filetype is xlsx, separator options are disabled
-    {
-      input[["select_filetype"]]
-    }, 
-    { 
+  observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
         shinyjs::disable("select_separator")
       }else{
@@ -121,13 +117,7 @@ app_server <- function(input, output, session) {
       }
     })
   
-  
-  
-  observeEvent( # when filetype and separator aren't chosen, file select is disabled
-    {
-      input[["select_filetype"]] 
-      input[["select_separator"]]}, 
-    { 
+  observe({ # when filetype and separator aren't chosen, file select is disabled
     if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" ))||
           input[["select_filetype"]]== "xlsx"){
       shinyjs::enable("select_file")
@@ -136,7 +126,6 @@ app_server <- function(input, output, session) {
     }
   })
   
-
   observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
     if(!is.null(dataset())){
       shinyjs::enable("to_view_data_button1")
@@ -202,7 +191,6 @@ app_server <- function(input, output, session) {
   
   ### loading a dataset
 
-  
   dataset <- reactive({ # load data to analyse and visualize
     if(data_load() == "example_data"){
       example_data_name <- input[["select_example_data"]]
@@ -225,8 +213,7 @@ app_server <- function(input, output, session) {
       data_file <- input[["select_file"]]
       if(is.null(data_file)){return()}
       
-      ### check filetype and alert if invalid
-      
+      # check filetype and alert if invalid
       filetype<-input[['select_filetype']]
       if(filetype=='csv'){
         
@@ -367,6 +354,39 @@ app_server <- function(input, output, session) {
                               "user_data" = "visualization")
     }
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
+  })
+  
+  shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
+    new_interface <- switch(input[["interfaces"]],
+                            "visualization" = "prediction",
+                            "prediction" = "visualization")
+    shinydashboard::updateTabItems(session, "interfaces", new_interface)
+  })
+  
+  output[["map_visualization"]] <- renderUI( # creating data visualization UI
+    sidebarLayout(
+      sidebarPanel(
+        fluidRow(column(12, align = "center", selectInput("select_geo_column", shiny::HTML("Please select column <br/> contains geographic data:"),
+                                                          choices = c("no column", colnames(dataset())),
+                                                          selected = "no column"))),
+        fluidRow(column(12, align = "center", selectInput("select_time_column", shiny::HTML("Please select column <br/> contains time data:"),
+                                                          choices = c("no column", colnames(dataset())),
+                                                          selected = "no column"))),
+        fluidRow(column(12, align = "center", selectInput("select_measurements_column", shiny::HTML("Please select column <br/> contains measurements:"),
+                                                          choices = c("no column", colnames(dataset())),
+                                                          selected = "no column"))),
+        width = 3),
+      mainPanel(
+        div(id="box-mapplot",shinycssloaders::withSpinner(plotOutput("map_plot"), color = "#efefef")),
+        width = 9)
+    )
+  )
+  
+  output[["map_plot"]] <- renderPlot({ # ploting map
+    validate(
+      need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
+           "No columns selected. Please select columns containing time data, geographic data and measurements.")
+    )
   })
   
   ### the data visualization and prediction interface
