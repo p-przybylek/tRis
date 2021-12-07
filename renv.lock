@@ -317,6 +317,13 @@
       "Repository": "CRAN",
       "Hash": "a525aba14184fec243f9eaec62fbed43"
     },
+    "hunspell": {
+      "Package": "hunspell",
+      "Version": "3.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3987784c19192ad0f2261c456d936df1"
+    },
     "ini": {
       "Package": "ini",
       "Version": "0.3.1",
@@ -562,6 +569,13 @@
       "Repository": "CRAN",
       "Hash": "e418b532e9bb4eb22a714b9a9f1acee7"
     },
+    "shinyhelper": {
+      "Package": "shinyhelper",
+      "Version": "0.3.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "baef117734d5bd59373a561a15168679"
+    },
     "shinyjs": {
       "Package": "shinyjs",
       "Version": "2.0.0",
@@ -575,6 +589,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "947e4e02a79effa5d512473e10f41797"
+    },
+    "spelling": {
+      "Package": "spelling",
+      "Version": "2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "b8c899a5c83f0d897286550481c91798"
     },
     "stringi": {
       "Package": "stringi",
@@ -596,6 +617,12 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "b227d13e29222b4574486cfcbde077fa"
+    },
+    "tRis": {
+      "Package": "tRis",
+      "Version": "0.0.0.9000",
+      "Source": "unknown",
+      "Hash": "263b8bdb435a92856e275599591174d2"
     },
     "testthat": {
       "Package": "testthat",

@@ -3,6 +3,7 @@
 export(run_app)
 import(shiny,except=c(dataTableOutput,renderDataTable))
 import(shinydashboard)
+import(shinyhelper)
 importFrom(DT,dataTableOutput)
 importFrom(DT,renderDataTable)
 importFrom(config,get)

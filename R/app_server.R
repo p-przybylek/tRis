@@ -9,9 +9,6 @@
 #' @importFrom openxlsx read.xlsx
 #' @noRd
 #' 
-
-
-
 app_server <- function(input, output, session) {
   
   ### option to increase input limit to 1GB
@@ -73,6 +70,7 @@ app_server <- function(input, output, session) {
     
     
   })
+  
   output[["select_file"]] <- renderUI({ # render select file
 
     # validate extension list based on the chosen filetype
@@ -136,7 +134,6 @@ app_server <- function(input, output, session) {
     }
   })
   
-  
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "user_data" = "table_view",
@@ -158,6 +155,8 @@ app_server <- function(input, output, session) {
                             "example_data" = "start",
                             "start" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
+    
+    # return select input to default state
     updateSelectInput(session, "select_example_data", NULL,
                       choices = c("Please select the data..." = "no_data",
                                   "covid-19 infection cases in Poland" = "covid_poland",
@@ -203,7 +202,6 @@ app_server <- function(input, output, session) {
                                type = "success",
                                confirmButtonText = "OK",
                                confirmButtonCol = "#a6a6a6")
-        
         return(e[[name]])
       }else{
         return(NULL)
@@ -211,84 +209,95 @@ app_server <- function(input, output, session) {
     }
     if(data_load() == "user_data"){
       data_file <- input[["select_file"]]
-      if(is.null(data_file)){return()}
+      if(is.null(data_file)){return(NULL)}
       
       # check filetype and alert if invalid
-      filetype<-input[['select_filetype']]
-      if(filetype=='csv'){
-        
-          if( data_file$type=="text/csv"){
-            user_dataset<-utils::read.csv(file=data_file$datapath,
-                                   sep=input[['select_separator']],
-                                   header=TRUE)
+      filetype <- input[['select_filetype']]
+      if(filetype == 'csv'){
+          if( data_file$type == "text/csv"){
+            user_dataset <- utils::read.csv(file=data_file$datapath, sep=input[['select_separator']], header=TRUE)
+            
             # display a confirmation
             shinyalert::shinyalert("Data loaded successfully",
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            
+            # enable buttons
             shinyjs::enable("to_view_data_button1")
             shinyjs::enable("to_visualize_data_button1")
           }
           else{
-            user_dataset<-NULL
+            user_dataset <- NULL
+            
             # display error
-            shinyalert::shinyalert("Invalid extension, choose a .csv file or a valid extension type for your file",
+            shinyalert::shinyalert("Invalid extension",
+                                   "Please choose a .csv file or a valid extension type for your file.",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            
+            # disable buttons
             shinyjs::disable("to_view_data_button1")
             shinyjs::disable("to_visualize_data_button1")
-
           }
 
         }
-        else if(filetype=='txt'){
+        else if(filetype == 'txt'){
 
-          if( data_file$type=="text/plain"){
-            user_dataset<-utils::read.table(file=data_file$datapath,
-                                     sep=input[['select_separator']],
-                                     header=TRUE)
+          if( data_file$type == "text/plain"){
+            user_dataset <- utils::read.table(file=data_file$datapath, sep=input[['select_separator']], header=TRUE)
+            
             # display a confirmation
             shinyalert::shinyalert("Data loaded successfully",
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            # enable buttons
             shinyjs::enable("to_view_data_button1")
             shinyjs::enable("to_visualize_data_button1")
           }
           else{
-            user_dataset<-NULL
+            user_dataset <- NULL
+            
             # display error
-            shinyalert::shinyalert("Invalid extension, choose a .txt file or a valid extension type for your file",
+            shinyalert::shinyalert("Invalid extension",
+                                   "Please choose a .txt file or a valid extension type for your file.",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            
+            # disable buttons
             shinyjs::disable("to_view_data_button1")
             shinyjs::disable("to_visualize_data_button1")
-
           }
-          
-          
         }
-        else if(filetype=='xlsx'){
+        else if(filetype == 'xlsx'){
 
-          if( data_file$type=="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
-            user_dataset<-openxlsx::read.xlsx(data_file$datapath)
+          if( data_file$type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
+            user_dataset <- openxlsx::read.xlsx(data_file$datapath)
+            
             # display a confirmation
             shinyalert::shinyalert("Data loaded successfully",
                                    type = "success",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            
+            # enable buttons
             shinyjs::enable("to_view_data_button1")
             shinyjs::enable("to_visualize_data_button1")
           }
           else{
-            user_dataset<-NULL
+            user_dataset <- NULL
+            
             # display error
-            shinyalert::shinyalert("Invalid extension, choose a .xlsx file or a valid extension type for your file",
+            shinyalert::shinyalert("Invalid extension",
+                                   "Please choose a .xlsx file or a valid extension type for your file.",
                                    type = "error",
                                    confirmButtonText = "OK",
                                    confirmButtonCol = "#a6a6a6")
+            
+            # disable buttons
             shinyjs::disable("to_view_data_button1")
             shinyjs::disable("to_visualize_data_button1")
 
@@ -296,20 +305,20 @@ app_server <- function(input, output, session) {
           
         }
       else{
-        user_dataset<-NULL
+        user_dataset <- NULL
+        
         # display error
         shinyalert::shinyalert("Invalid extension type",
                                type = "error",
                                confirmButtonText = "OK",
                                confirmButtonCol = "#a6a6a6")
+        
+        # disable buttons
         shinyjs::disable("to_view_data_button1")
         shinyjs::disable("to_visualize_data_button1")
       }
-        
         return(user_dataset)
-        
       }
-    
   })
   
   ### the view data in a table interface
@@ -366,6 +375,8 @@ app_server <- function(input, output, session) {
   output[["map_visualization"]] <- renderUI( # creating data visualization UI
     sidebarLayout(
       sidebarPanel(
+        fluidRow(column(12, align = "center", selectInput("select_data_type", shiny::HTML("Please choose what <br/> your data is about:"),
+                                                          choices = c("World", "Poland")))),
         fluidRow(column(12, align = "center", selectInput("select_geo_column", shiny::HTML("Please select column <br/> contains geographic data:"),
                                                           choices = c("no column", colnames(dataset())),
                                                           selected = "no column"))),
@@ -381,6 +392,62 @@ app_server <- function(input, output, session) {
         width = 9)
     )
   )
+  
+  observeEvent(input[["select_geo_column"]], { # check selected column for geografic data
+    # ToDo
+  })
+  
+  observeEvent(input[["select_time_column"]], { # check selected column for time data
+    vector_time <- as.character(dataset()$input[["select_time_column"]])
+    len <- unique(nchar(vector_time))
+    if(length(len) != 1){
+      if(isFALSE(all(len >= 1)) || isFALSE(all(len <= 4))){
+        # display error
+        # ToDo
+      }else{
+        if(isFALSE(all(as.integer(vector_time) >= 1)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+          # display error
+          # ToDo
+        }
+      }
+    }else{
+      if(len != 4 && len != 10){
+        # display error
+        # ToDo
+      }else if(len == 10){
+        first_option <- !all(is.na(as.Date(vector_time, format="%Y-%m-%d")))
+        second_option <- !all(is.na(as.Date(vector_time, format="%Y.%m.%d")))
+        if(isFALSE(first_option) && isFALSE(second_option)){
+          # display error
+          # ToDo
+        }
+      }else{
+        if(isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+          # display error
+          # ToDo
+        }
+      }
+    }
+    
+  })
+  
+  observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
+    if(class(dataset()$input[["select_measurements_column"]]) != "numeric"){
+      
+      # display error
+      shinyalert::shinyalert("Invalid column type",
+                             "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
+                             type = "error",
+                             confirmButtonText = "OK",
+                             confirmButtonCol = "#a6a6a6")
+      
+      # return select input to default state
+      updateSelectInput(session, "select_measurements_column", 
+                        shiny::HTML("Please select column <br/> contains measurements:"),
+                        choices = c("no column", colnames(dataset())),
+                        selected = "no column")
+    }
+  })
   
   output[["map_plot"]] <- renderPlot({ # ploting map
     validate(

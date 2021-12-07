@@ -80,8 +80,8 @@ colnames(covid_poland)<-c('voivodeship', 'district_city', 'cases', 'cases_per_10
                           'people_in_quarantine', 'tests', 'positive_tests', 'negative_tests', 'territory', 'date', 'convalescents')
 
 ### changing encoding 
-covid_poland$wojewodztwo <- iconv(covid_poland$voivodeship, 'Windows-1250', 'UTF-8')
-covid_poland$powiat_miasto <- iconv(covid_poland$district_city, 'Windows-1250', 'UTF-8')
+covid_poland$voivodeship <- iconv(covid_poland$voivodeship, 'Windows-1250', 'UTF-8')
+covid_poland$district_city <- iconv(covid_poland$district_city, 'Windows-1250', 'UTF-8')
 
 covid_poland <- as.data.table(covid_poland)
 usethis::use_data(covid_poland, overwrite = TRUE, compress='xz')
