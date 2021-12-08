@@ -389,7 +389,7 @@ app_server <- function(input, output, session) {
                                                           selected = "no column"))),
         width = 3),
       mainPanel(
-        div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map_plot"), color = "#efefef")),
+        div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef")),
         width = 9)
     )
   )
@@ -525,7 +525,7 @@ app_server <- function(input, output, session) {
     }
   })
   
-  output[["map_plot"]] <- renderLeaflet({ # ploting map
+  output[["map"]] <- renderLeaflet({ # ploting map
     validate(
       need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
            "No columns selected. Please select columns containing time data, geographic data and measurements.")
@@ -541,5 +541,22 @@ app_server <- function(input, output, session) {
                             "visualization" = "prediction")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
+  
+  prediction_area <- reactiveValues(data = NULL)
+  
+  observe(
+    if(!is.null(input[["map_shape_click"]]$id)){
+      shinyjs::enable("to_prediction_button")
+      area_code <- input[["map_shape_click"]]$id
+      setkeyv(dataset(), input[["select_geo_column"]])
+      prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
+    }else{
+      shinyjs::disable("to_prediction_button")
+    }
+  )
+  
+  output[["prediction_plot"]] <- renderPlot({
+    # ToDo
+  }) 
   
 }
