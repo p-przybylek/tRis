@@ -10,7 +10,7 @@ A data table with 6468 rows and 6 variables:
   \item{Entity}{name of the country / geographic area}
   \item{Code}{code of the geographical area}
   \item{Year}{year in which the measurements were made}
-  \item{Deaths}{number of dead}
+  \item{Deaths}{number of deaths}
   \item{Incidence}{number of infected}
   \item{Prevalence}{number of infected per 100,000 people in the studied population}
 }
@@ -22,7 +22,7 @@ A data table with 6468 rows and 6 variables:
 data(deaths_and_new_cases_hiv)
 }
 \description{
-A dataset containing the number of cases and deaths caused by HIV around the world in 1990-2017
-They include people of different ages and both genders. The variables are as follows:
+A dataset containing the number of cases and deaths caused by HIV around the world in the years 1990-2017
+Data includes people of different ages and both genders. The variables description:
 }
 \keyword{datasets}

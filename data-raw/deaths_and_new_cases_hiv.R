@@ -18,6 +18,8 @@ hiv<-hiv%>%
          Incidence=as.integer(round(Incidence)),
          Prevalence=as.integer(round(Prevalence)))
 
+# removing geographical area without ISO codes
+hiv<-hiv[nchar(hiv$Code)>=2,]
 
 deaths_and_new_cases_hiv<-hiv
 deaths_and_new_cases_hiv <- as.data.table(deaths_and_new_cases_hiv)

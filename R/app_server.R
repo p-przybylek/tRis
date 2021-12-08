@@ -1,9 +1,10 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
-#' @import shiny shinydashboard
+#' @import shiny shinydashboard maps
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
+#' @importFrom data.table as.data.table
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
@@ -317,7 +318,7 @@ app_server <- function(input, output, session) {
         shinyjs::disable("to_view_data_button1")
         shinyjs::disable("to_visualize_data_button1")
       }
-        return(user_dataset)
+        return(as.data.table(user_dataset))
       }
   })
   
@@ -394,58 +395,133 @@ app_server <- function(input, output, session) {
   )
   
   observeEvent(input[["select_geo_column"]], { # check selected column for geografic data
-    # ToDo
-  })
-  
-  observeEvent(input[["select_time_column"]], { # check selected column for time data
-    vector_time <- as.character(dataset()$input[["select_time_column"]])
-    len <- unique(nchar(vector_time))
-    if(length(len) != 1){
-      if(isFALSE(all(len >= 1)) || isFALSE(all(len <= 4))){
-        # display error
-        # ToDo
-      }else{
-        if(isFALSE(all(as.integer(vector_time) >= 1)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
-          # display error
-          # ToDo
+    if(input[["select_geo_column"]] != "no column"){
+      vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
+      len <- unique(nchar(vector_geo))
+      val <- FALSE
+      if(input[["select_data_type"]] == "Poland"){
+        e <- new.env()
+        name <- load(file.path("data", "poland_teryt.rda"), envir = e)
+        teryt <- e[[name]]$teryt
+        if(length(len) != 1 && length(len) != 2){
+          val <- TRUE
+        }else{
+          if(!all(len %in% c(2,4)) && !all(len %in% c(3,5))){
+            val <- TRUE
+          }else{
+            if(all(len %in% c(2,4))){
+              if(all(is.na(as.numeric(vector_geo))) || !all(vector_geo %in% c("00", "0000", teryt))){
+                val <- TRUE
+              }
+            }else if(all(len %in% c(3,5))){
+              vector_geo_new <- substr(vector_geo, 2, nchar(vector_geo))
+              if(all(is.na(as.numeric(vector_geo_new))) || !all(vector_geo_new %in% c("00", "0000", teryt))){
+                val <- TRUE
+              }
+            }
+          }
         }
-      }
-    }else{
-      if(len != 4 && len != 10){
-        # display error
-        # ToDo
-      }else if(len == 10){
-        first_option <- !all(is.na(as.Date(vector_time, format="%Y-%m-%d")))
-        second_option <- !all(is.na(as.Date(vector_time, format="%Y.%m.%d")))
-        if(isFALSE(first_option) && isFALSE(second_option)){
+        if(val){
+          
           # display error
-          # ToDo
+          shinyalert::shinyalert("Invalid column type",
+                                 "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the TERYT format (tXX and tXXXX or XX and XXXX) or change type od data for 'World'.",
+                                 type = "error",
+                                 confirmButtonText = "OK",
+                                 confirmButtonCol = "#a6a6a6")
+          
+          # return select input to default state
+          updateSelectInput(session, "select_geo_column", 
+                            shiny::HTML("Please select column <br/> contains geographic data:"),
+                            choices = c("no column", colnames(dataset())),
+                            selected = "no column")
         }
-      }else{
-        if(isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+      }else if(input[["select_data_type"]] == "World"){ # properly format of a column is ISO 3166-1
+        if((length(len) != 1 && length(len) != 2) || !all(len %in% c(2,3,8))){
+          val <- TRUE
+        }else{
+          if(all(len %in% c(2,8)) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a2))){
+            val <- TRUE
+          }else if(all(len %in% c(3,8)) && (!all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)) || !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)))){
+            val <- TRUE
+          }else if(len == 8 && (length(len) == 1)){
+            val <- TRUE
+          }
+        }
+        if(val){
+          
           # display error
-          # ToDo
+          shinyalert::shinyalert("Invalid column type",
+                                 "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the ISO 3166-1 format or change type od data for 'Poland'.",
+                                 type = "error",
+                                 confirmButtonText = "OK",
+                                 confirmButtonCol = "#a6a6a6")
+          
+          # return select input to default state
+          updateSelectInput(session, "select_geo_column", 
+                            shiny::HTML("Please select column <br/> contains geographic data:"),
+                            choices = c("no column", colnames(dataset())),
+                            selected = "no column")
         }
       }
     }
-    
+  })
+  
+  observeEvent(input[["select_time_column"]], { # check selected column for time data
+    if(input[["select_time_column"]] != "no column"){
+      vector_time <- as.character(dataset()[[input[["select_time_column"]]]])
+      len <- unique(nchar(vector_time))
+      val <- FALSE
+      if(length(len) != 1 || (len != 4 && len != 10)){
+        val <- TRUE
+      }else{
+        if(len == 10){
+          first_option <- all(is.na(as.Date(vector_time, format="%Y-%m-%d")))
+          second_option <- all(is.na(as.Date(vector_time, format="%Y.%m.%d")))
+          if(first_option && second_option){
+            val <- TRUE
+          }
+        }else{
+          if(isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+            val <- TRUE
+          }
+        }
+      }
+      if(val){
+        
+        # display error
+        shinyalert::shinyalert("Invalid column type",
+                               "The selected column for dates contains an invalid format. Please select a column that contains the date format consistent with the one adopted by the application: YYYY or YYYY-MM-DD or YYYY.MM.DD.",
+                               type = "error",
+                               confirmButtonText = "OK",
+                               confirmButtonCol = "#a6a6a6")
+        
+        # return select input to default state
+        updateSelectInput(session, "select_time_column", 
+                          shiny::HTML("Please select column <br/> contains time data:"),
+                          choices = c("no column", colnames(dataset())),
+                          selected = "no column")
+      }
+    }
   })
   
   observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
-    if(class(dataset()$input[["select_measurements_column"]]) != "numeric"){
-      
-      # display error
-      shinyalert::shinyalert("Invalid column type",
-                             "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
-                             type = "error",
-                             confirmButtonText = "OK",
-                             confirmButtonCol = "#a6a6a6")
-      
-      # return select input to default state
-      updateSelectInput(session, "select_measurements_column", 
-                        shiny::HTML("Please select column <br/> contains measurements:"),
-                        choices = c("no column", colnames(dataset())),
-                        selected = "no column")
+    if(input[["select_measurements_column"]] != "no column"){
+      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer"){
+        
+        # display error
+        shinyalert::shinyalert("Invalid column type",
+                               "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
+                               type = "error",
+                               confirmButtonText = "OK",
+                               confirmButtonCol = "#a6a6a6")
+        
+        # return select input to default state
+        updateSelectInput(session, "select_measurements_column", 
+                          shiny::HTML("Please select column <br/> contains measurements:"),
+                          choices = c("no column", colnames(dataset())),
+                          selected = "no column")
+      } 
     }
   })
   

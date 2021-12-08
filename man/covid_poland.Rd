@@ -7,21 +7,21 @@
 \format{
 A data table with 132588 rows and 15 variables:
 \describe{
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
-  \item{}{}
+  \item{voivodeship}{name of the voivodeship}
+  \item{district_city}{name of the district or the city on district rights}
+  \item{cases}{number of covid cases}
+  \item{cases_per_10_thousand_citizens}{number of covid cases per 10 thousand citizens in the given district}
+  \item{deaths}{number of deaths}
+  \item{deaths_without_comorbid_diseases}{number of deaths due to covid without comorbid diseases}
+  \item{deaths_with_comorbid_diseases}{number of deaths due to covid and comorbid diseases}
+  \item{primary_care_physician_commisions}{number of commisions from Primary Care Physicians}
+  \item{people_in_quarantine}{number of people in quarantine}
+  \item{tests}{number of done tests}
+  \item{positive_tests}{number of tests with positive results}
+  \item{negative_tests}{number of tests with negative results}
+  \item{territory}{territory code from original data, in tXXXX format}
+  \item{date}{day when the data was collected}
+  \item{convalescents}{number of convalescents}
 }
 }
 \source{
@@ -31,7 +31,6 @@ A data table with 132588 rows and 15 variables:
 data(covid_poland)
 }
 \description{
-A dataset includes daily measurements of COVID-19 virus spread in Poland.
-The variables are as follows:
+A dataset includes daily measurements of COVID-19 virus spread in Poland. The variables description:
 }
 \keyword{datasets}

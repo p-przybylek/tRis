@@ -1,14 +1,28 @@
+#' TERYT administrative codes.
+#'
+#' A dataset containing the TERYT Poland codes of the geographical area. The variables description:
+#'
+#' @docType data
+#' @usage data(poland_teryt)
+#' @format A data table with 395 rows and 3 variables:
+#' \describe{
+#'   \item{name}{name of the district or the city on district rights or the voivodeship}
+#'   \item{administrative_division_level}{district or the city on district rights or the voivodeship}
+#'   \item{teryt}{code of the geographical area}
+#' }
+#' @source \url{https://eteryt.stat.gov.pl/eTeryt/rejestr_teryt/udostepnianie_danych/baza_teryt/uzytkownicy_indywidualni/pobieranie/pliki_pelne.aspx?contrast=default}
+"poland_teryt"
+
 #' COVID-19 statistics in Poland.
 #'
-#' A dataset includes daily measurements of COVID-19 virus spread in Poland.
-#' The variables description:
+#' A dataset includes daily measurements of COVID-19 virus spread in Poland. The variables description:
 #'
 #' @docType data
 #' @usage data(covid_poland)
 #' @format A data table with 132588 rows and 15 variables:
 #' \describe{
 #'   \item{voivodeship}{name of the voivodeship}
-#'   \item{district_city}{name of the district or  the city on district rights}
+#'   \item{district_city}{name of the district or the city on district rights}
 #'   \item{cases}{number of covid cases}
 #'   \item{cases_per_10_thousand_citizens}{number of covid cases per 10 thousand citizens in the given district}
 #'   \item{deaths}{number of deaths}
