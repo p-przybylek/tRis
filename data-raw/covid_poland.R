@@ -80,4 +80,5 @@ colnames(covid_poland)<-c('voivodeship', 'district_city', 'cases', 'cases_per_10
                           'people_in_quarantine', 'tests', 'positive_tests', 'negative_tests', 'territory', 'date', 'convalescents')
 
 covid_poland <- as.data.table(covid_poland)
-usethis::use_data(covid_poland, overwrite = TRUE, compress='xz')
+usethis::use_data(covid_poland, overwrite = TRUE, compress='xz') 
+save(covid_poland, file = './data/covid_poland.rda', compress = 'xz') # save RDA file again, because before file saved with Unicode not UTF-8
