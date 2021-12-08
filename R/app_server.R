@@ -389,7 +389,7 @@ app_server <- function(input, output, session) {
                                                           selected = "no column"))),
         width = 3),
       mainPanel(
-        div(id="box-mapplot",shinycssloaders::withSpinner(plotOutput("map_plot"), color = "#efefef")),
+        div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map_plot"), color = "#efefef")),
         width = 9)
     )
   )
@@ -525,11 +525,12 @@ app_server <- function(input, output, session) {
     }
   })
   
-  output[["map_plot"]] <- renderPlot({ # ploting map
+  output[["map_plot"]] <- renderLeaflet({ # ploting map
     validate(
       need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
            "No columns selected. Please select columns containing time data, geographic data and measurements.")
     )
+    plot_map(dataset(), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]])
   })
   
   ### the data visualization and prediction interface
