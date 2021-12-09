@@ -8,6 +8,8 @@
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
+#' @importFrom forecast forecast
+#' @importFrom ggplot2 geom_path, aes, theme_bw, xlab, ylab
 #' @noRd
 #' 
 app_server <- function(input, output, session) {
@@ -540,11 +542,13 @@ app_server <- function(input, output, session) {
     forecast <- forecast::forecast(series, h=3, model=model)
     
     area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
+    
     autoplot(forecast)+
-      ggplot2::geom_path(ggplot2::aes(x=n:(n+1), y=c(series[n], forecast$mean[1])))+
       ggplot2::theme_bw()+
       ggplot2::xlab(date_name)+
-      ggplot2::ylab(stat_name)
+      ggplot2::ylab(stat_name)+
+      ggplot2::ggtitle(paste('Time series of', stat_name, "in", area_name))+
+      ggplot2::geom_path(ggplot2::aes(x=(n):(n+1), y=c(series[n], forecast$mean[1])))
   }) 
     
 }
