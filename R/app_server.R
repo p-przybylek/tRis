@@ -213,10 +213,10 @@ app_server <- function(input, output, session) {
       if(is.null(data_file)){return(NULL)}
       
       # check filetype and alert if invalid
-      filetype <- input[['select_filetype']]
-      if(filetype == 'csv'){
-          if( data_file$type == "text/csv"){
-            user_dataset <- utils::read.csv(file=data_file$datapath, sep=input[['select_separator']], header=TRUE)
+      filetype <- input[["select_filetype"]]
+      if(filetype == "csv"){
+          if(data_file$type == "text/csv"){
+            user_dataset <- utils::read.csv(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE, encoding = "UTF-8")
             
             # display a confirmation
             shinyalert::shinyalert("Data loaded successfully",
@@ -244,10 +244,10 @@ app_server <- function(input, output, session) {
           }
 
         }
-        else if(filetype == 'txt'){
+        else if(filetype == "txt"){
 
           if( data_file$type == "text/plain"){
-            user_dataset <- utils::read.table(file=data_file$datapath, sep=input[['select_separator']], header=TRUE)
+            user_dataset <- utils::read.table(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE)
             
             # display a confirmation
             shinyalert::shinyalert("Data loaded successfully",
@@ -275,7 +275,7 @@ app_server <- function(input, output, session) {
         }
         else if(filetype == 'xlsx'){
 
-          if( data_file$type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
+          if(data_file$type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
             user_dataset <- openxlsx::read.xlsx(data_file$datapath)
             
             # display a confirmation
