@@ -398,30 +398,8 @@ app_server <- function(input, output, session) {
   observeEvent(input[["select_geo_column"]], { # check selected column for geografic data
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
-      len <- unique(nchar(vector_geo))
-      val <- FALSE
       if(input[["select_data_type"]] == "Poland"){
-        e <- new.env()
-        name <- load(file.path("data", "poland_teryt.rda"), envir = e)
-        teryt <- e[[name]]$teryt
-        if(length(len) != 1 && length(len) != 2){
-          val <- TRUE
-        }else{
-          if(!all(len %in% c(2,4)) && !all(len %in% c(3,5))){
-            val <- TRUE
-          }else{
-            if(all(len %in% c(2,4))){
-              if(all(is.na(as.numeric(vector_geo))) || !all(vector_geo %in% c("00", "0000", teryt))){
-                val <- TRUE
-              }
-            }else if(all(len %in% c(3,5))){
-              vector_geo_new <- substr(vector_geo, 2, nchar(vector_geo))
-              if(all(is.na(as.numeric(vector_geo_new))) || !all(vector_geo_new %in% c("00", "0000", teryt))){
-                val <- TRUE
-              }
-            }
-          }
-        }
+        val <- geo_column_check(vector_geo, "Poland")
         if(val){
           
           # display error
@@ -438,17 +416,7 @@ app_server <- function(input, output, session) {
                             selected = "no column")
         }
       }else if(input[["select_data_type"]] == "World"){ # properly format of a column is ISO 3166-1
-        if((length(len) != 1 && length(len) != 2) || !all(len %in% c(2,3,8))){
-          val <- TRUE
-        }else{
-          if(all(len %in% c(2,8)) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a2))){
-            val <- TRUE
-          }else if(all(len %in% c(3,8)) && (!all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)) || !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)))){
-            val <- TRUE
-          }else if(len == 8 && (length(len) == 1)){
-            val <- TRUE
-          }
-        }
+        val <- geo_column_check(vector_geo, "World")
         if(val){
           
           # display error
@@ -471,21 +439,7 @@ app_server <- function(input, output, session) {
   observeEvent(input[["select_time_column"]], { # check selected column for time data
     if(input[["select_time_column"]] != "no column"){
       vector_time <- as.character(dataset()[[input[["select_time_column"]]]])
-      len <- unique(nchar(vector_time))
-      val <- FALSE
-      if(length(len) != 1 || (len != 4 && len != 10)){
-        val <- TRUE
-      }else{
-        if(len == 10){
-          if(all(is.na(as.Date(vector_time, format="%Y-%m-%d")))){
-            val <- TRUE
-          }
-        }else{
-          if(isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
-            val <- TRUE
-          }
-        }
-      }
+      val <- time_column_check(vector_time)
       if(val){
         
         # display error
@@ -566,9 +520,9 @@ app_server <- function(input, output, session) {
   observe(
     if(!is.null(input[["map_shape_click"]]$id)){
       shinyjs::enable("to_prediction_button")
-      area_code <- input[["map_shape_click"]]$id
-      setkeyv(dataset(), input[["select_geo_column"]])
-      prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
+      #area_code <- input[["map_shape_click"]]$id
+      #setkeyv(dataset(), input[["select_geo_column"]])
+      #prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
     }else{
       shinyjs::disable("to_prediction_button")
     }

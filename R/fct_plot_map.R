@@ -52,7 +52,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                                 dashArray = "3",
                                 fillOpacity = 0.7,
                                 label = ~paste0(NAME_2, ": ", formatC(value, big.mark = ",")),
-                                layerId = ~CC_2) %>% 
+                                layerId = ~paste0(CC_2,";", NAME_2)) %>% 
               leaflet::addLegend(pal = pal,
                                  values = ~value,
                                  opacity = 1,
@@ -83,7 +83,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                            dashArray = "3",
                            fillOpacity = 0.7,
                            label = ~paste0(name_long, ": ", formatC(value, big.mark = ",")),
-                           layerId = ~world_countries@data[[val]]) %>% 
+                           layerId = ~paste0(world_countries@data[[val]], ";", name_long)) %>% 
       leaflet::addLegend(pal = pal,
                          values = ~value,
                          opacity = 1,
