@@ -547,8 +547,7 @@ app_server <- function(input, output, session) {
       ggplot2::theme_bw()+
       ggplot2::xlab(date_name)+
       ggplot2::ylab(stat_name)+
-      ggplot2::ggtitle(paste('Time series of', stat_name, "in", area_name))+
-      ggplot2::geom_path(ggplot2::aes(x=(n):(n+1), y=c(series[n], forecast$mean[1])))
+      ggplot2::ggtitle(paste('Time series of', stat_name, "in", area_name))
   }) 
     
 }
