@@ -575,7 +575,15 @@ app_server <- function(input, output, session) {
   )
   
   output[["prediction_plot"]] <- renderPlot({
-    # ToDo
+    date_name<-input[["select_time_column"]]
+    place_name<-input[["select_geo_column"]]
+    stat_name<-input[["select_measurements_column"]]
+    series<-prediction_area$data[[stat_name]]
+    model<-auto.arima(series,
+                       stationary = FALSE,
+                       seasonal=TRUE)
+    forecast<-forecast::forecast(series, h=3, model=model)
+    autoplot(forecast)
   }) 
-  
+    
 }
