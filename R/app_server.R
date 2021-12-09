@@ -520,9 +520,9 @@ app_server <- function(input, output, session) {
   observe(
     if(!is.null(input[["map_shape_click"]]$id)){
       shinyjs::enable("to_prediction_button")
-      #area_code <- input[["map_shape_click"]]$id
-      #setkeyv(dataset(), input[["select_geo_column"]])
-      #prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
+      area_code=sub("\\;.*", "", input[["map_shape_click"]]$id)
+      setkeyv(dataset(), input[["select_geo_column"]])
+      prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
     }else{
       shinyjs::disable("to_prediction_button")
     }
@@ -533,11 +533,18 @@ app_server <- function(input, output, session) {
     place_name <- input[["select_geo_column"]]
     stat_name <- input[["select_measurements_column"]]
     series <- prediction_area$data[[stat_name]]
+    n<-length(series)
     model <- forecast::auto.arima(series,
                        stationary = FALSE,
                        seasonal=TRUE)
     forecast <- forecast::forecast(series, h=3, model=model)
-    autoplot(forecast)
+    
+    area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
+    autoplot(forecast)+
+      ggplot2::geom_path(ggplot2::aes(x=n:(n+1), y=c(series[n], forecast$mean[1])))+
+      ggplot2::theme_bw()+
+      ggplot2::xlab(date_name)+
+      ggplot2::ylab(stat_name)
   }) 
     
 }
