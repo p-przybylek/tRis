@@ -11,11 +11,16 @@ time_column_check <- function(vector_time){
     val <- TRUE
   }else{
     if(len == 10){
-      if(all(is.na(as.Date(vector_time, format="%Y-%m-%d")))){
+      check_type <- (unique(nchar(sub("\\..*", "", vector_time))) != 4)
+      if(length(check_type) != 1){
+        val <- TRUE
+      }else if(check_type && any(is.na(as.Date(vector_time, format="%Y-%m-%d")))){
+        val <- TRUE
+      }else if(!check_type && any(is.na(as.Date(vector_time, format="%Y.%m.%d")))){
         val <- TRUE
       }
     }else{
-      if(isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+      if(is.na(all(as.integer(vector_time))) || isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
         val <- TRUE
       }
     }
@@ -57,14 +62,18 @@ geo_column_check <- function(vector_geo, data_type){
         }
       }
     }
-  }else if(data_type == "World"){ # properly format of a column is ISO 3166-1
+  }else if(data_type == "World"){ # properly format of a column is ISO 3166-1 code alpha-1 or aplha-2
     if((length(len) != 1 && length(len) != 2) || !all(len %in% c(2,3,8))){
       val <- TRUE
     }else{
       if(all(len %in% c(2,8)) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a2))){
         val <- TRUE
-      }else if(all(len %in% c(3,8)) && (!all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)) || !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3)))){
-        val <- TRUE
+      }else if(all(len %in% c(3,8))){
+        if(all(is.na(as.numeric(vector_geo))) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3))){
+          val <- TRUE
+        }else if(!all(is.na(as.numeric(vector_geo)))){
+          val <- TRUE
+        }
       }else if(len == 8 && (length(len) == 1)){
         val <- TRUE
       }

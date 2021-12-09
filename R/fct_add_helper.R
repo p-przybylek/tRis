@@ -4,7 +4,7 @@
 #' @param content \code{character} A title of a helper
 #' 
 #' @import shinyhelper
-#' @return An UI object with helper attached
+#' @return A shiny.tag.list - UI object with helper attached
 #' 
 add_helper <- function(fun, content){
   shinyhelper::helper(fun,

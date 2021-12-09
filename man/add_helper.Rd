@@ -12,7 +12,7 @@ add_helper(fun, content)
 \item{content}{\code{character} A title of a helper}
 }
 \value{
-An UI object with helper attached
+A shiny.tag.list - UI object with helper attached
 }
 \description{
 Attaches a helper to a UI object.

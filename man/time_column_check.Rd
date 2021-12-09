@@ -7,7 +7,7 @@
 time_column_check(vector_time)
 }
 \arguments{
-\item{vector_time}{\code{character or numeric} selected column for validaling}
+\item{vector_time}{\code{character} selected column for validaling}
 }
 \value{
 logical value
