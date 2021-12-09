@@ -26,7 +26,8 @@ Imports:
     leaflet,
     maps,
     magrittr,
-    rnaturalearth
+    rnaturalearth,
+    stats
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2

@@ -8,14 +8,31 @@
 #' @param data_value \code{character} a value of date_column for select rows to visualization
 #' 
 #' @import data.table sp leaflet magrittr rnaturalearth
+#' @importFrom stats aggregate
 #' @return map visualization
 #' 
 plot_map <- function(df, map_type, geo_column, date_column, measurements, data_value = NA){
-  if(is.na(data_value)){
+  if(length(data_value) == 1 && is.na(data_value)){
     data_value <- max(df[[date_column]])
   }
   data.table::setkeyv(df, date_column)
-  df_plot <- df[df[[date_column]]==data_value, c(date_column, geo_column, measurements), with=FALSE]
+  if(length(data_value) == 1){
+    df_plot <- df[df[[date_column]] == data_value, c(date_column, geo_column, measurements), with=FALSE] 
+  }else{
+    if(nchar(as.character(data_value[1])) == 10){
+      date_range <- seq(as.Date(data_value[1]), as.Date(data_value[2]), by="days")
+      df_plot <- df[df[[date_column]] %in% as.character(date_range), c(date_column, geo_column, measurements), with=FALSE]
+      #df_plot[, list(sum=sum(measurements)), by=geo_column]
+      df_plot <- as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
+      colnames(df_plot) <- c(geo_column, measurements)
+    }
+    else{
+      date_range <- seq(data_value[1], data_value[2])
+      df_plot <- df[df[[date_column]] %in% date_range, c(date_column, geo_column, measurements), with=FALSE]
+      df_plot <- as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
+      colnames(df_plot) <- c(geo_column, measurements) 
+    }
+  }
   if(map_type == "Poland"){
     vector_geo <- as.character(df_plot[[geo_column]])
     len <- unique(nchar(vector_geo))
@@ -57,9 +74,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     }
     pal <- leaflet::colorNumeric("plasma", NULL, na.color="transparent")
     map <- leaflet::leaflet(world_countries) %>% 
-      leaflet::addProviderTiles("MapBox", options = providerTileOptions(
-        id = "mapbox.light",
-        accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+      leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
       leaflet::addPolygons(smoothFactor = 0.3,
                            fillColor = ~pal(value),
                            weight = 2,
