@@ -7,7 +7,7 @@
 #' @param measurements \code{character} name of column contains measurements
 #' @param data_value \code{character} a value of date_column for select rows to visualization
 #' 
-#' @import data.table sp leaflet magrittr
+#' @import data.table sp leaflet magrittr rnaturalearth
 #' @return map visualization
 #' 
 plot_map <- function(df, map_type, geo_column, date_column, measurements, data_value = NA){
@@ -15,7 +15,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     data_value <- max(df[[date_column]])
   }
   data.table::setkeyv(df, date_column)
-  df_plot <- df[data_value, c(date_column, geo_column, measurements), with=FALSE]
+  df_plot <- df[df[[date_column]]==data_value, c(date_column, geo_column, measurements), with=FALSE]
   if(map_type == "Poland"){
     vector_geo <- as.character(df_plot[[geo_column]])
     len <- unique(nchar(vector_geo))
@@ -24,11 +24,9 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     }
     poland_powiat <- readRDS(system.file("extdata", "gadm36_POL_2_sp.rds", package = "tRis"))
     poland_powiat@data$value <- df_plot[[measurements]][match(poland_powiat@data$CC_2, df_plot[[geo_column]])]
-    pal <- leaflet::colorNumeric("viridis", NULL, na.color="transparent")
+    pal <- leaflet::colorNumeric("plasma", NULL, na.color="transparent")
     map <- leaflet::leaflet(poland_powiat) %>% 
-              leaflet::addProviderTiles("MapBox", options = providerTileOptions(
-                      id = "mapbox.light",
-                      accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+              leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
               leaflet::addPolygons(smoothFactor = 0.3,
                                 fillColor = ~pal(value),
                                 weight = 2,
@@ -44,6 +42,37 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                                  position = "topright")
     return(map)
   }else{
-    # ToDo
+    vector_geo <- as.character(df_plot[[geo_column]])
+    len <- unique(nchar(vector_geo))
+    world_countries <- rnaturalearth::ne_countries(returnclass='sp')
+    if(all(len %in% c(2,8))){
+      world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_a2, df_plot[[geo_column]])] 
+      val <- "iso_a2"
+    }else if(all(len %in% c(3,8)) && is.na(as.numeric(vector_geo))){
+      world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_a3, df_plot[[geo_column]])]
+      val <- "iso_a3"
+    }else{
+      world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_n3, df_plot[[geo_column]])]
+      val <- "iso_n3"
+    }
+    pal <- leaflet::colorNumeric("plasma", NULL, na.color="transparent")
+    map <- leaflet::leaflet(world_countries) %>% 
+      leaflet::addProviderTiles("MapBox", options = providerTileOptions(
+        id = "mapbox.light",
+        accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN'))) %>%
+      leaflet::addPolygons(smoothFactor = 0.3,
+                           fillColor = ~pal(value),
+                           weight = 2,
+                           opacity = 1,
+                           color = "black",
+                           dashArray = "3",
+                           fillOpacity = 0.7,
+                           label = ~paste0(name_long, ": ", formatC(value, big.mark = ",")),
+                           layerId = ~world_countries@data[[val]]) %>% 
+      leaflet::addLegend(pal = pal,
+                         values = ~value,
+                         opacity = 1,
+                         position = "topright")
+    return(map)
   }
 }
