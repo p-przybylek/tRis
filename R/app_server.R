@@ -1,7 +1,7 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
-#' @import shiny shinydashboard maps forecast
+#' @import shiny shinydashboard maps forecast ggplot2
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table as.data.table
@@ -9,6 +9,7 @@
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
 #' @importFrom forecast forecast
+#' @importFrom leaflet renderLeaflet
 #' @noRd
 #' 
 app_server <- function(input, output, session) {
