@@ -1,7 +1,7 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
-#' @import shiny shinydashboard maps
+#' @import shiny shinydashboard maps forecast
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table as.data.table
@@ -575,14 +575,14 @@ app_server <- function(input, output, session) {
   )
   
   output[["prediction_plot"]] <- renderPlot({
-    date_name<-input[["select_time_column"]]
-    place_name<-input[["select_geo_column"]]
-    stat_name<-input[["select_measurements_column"]]
-    series<-prediction_area$data[[stat_name]]
-    model<-auto.arima(series,
+    date_name <- input[["select_time_column"]]
+    place_name <- input[["select_geo_column"]]
+    stat_name <- input[["select_measurements_column"]]
+    series <- prediction_area$data[[stat_name]]
+    model <- forecast::auto.arima(series,
                        stationary = FALSE,
                        seasonal=TRUE)
-    forecast<-forecast::forecast(series, h=3, model=model)
+    forecast <- forecast::forecast(series, h=3, model=model)
     autoplot(forecast)
   }) 
     
