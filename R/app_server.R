@@ -556,16 +556,15 @@ app_server <- function(input, output, session) {
   )
   
   output[["prediction_plot"]] <- renderPlot({
-    dt<-reactive(prediction_area$data)
-    date_name<-reactive(input[["select_time_column"]])
-    place_name<-reactive(input[["select_geo_column"]])
-    stat_name<-reactive(input[["select_measurements_column"]])
-    series<-dt[[stat_name]]
-    model<-auto.arima(series, 
+    date_name<-input[["select_time_column"]]
+    place_name<-input[["select_geo_column"]]
+    stat_name<-input[["select_measurements_column"]]
+    series<-prediction_area$data[[stat_name]]
+    model<-auto.arima(series,
                        stationary = FALSE,
                        seasonal=TRUE)
-    forecast<- forecast(series, h=3, model=model)
-    autoplot(forecast1)
+    forecast<-forecast::forecast(series, h=3, model=model)
+    autoplot(forecast)
   }) 
   
 }
