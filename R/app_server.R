@@ -389,6 +389,7 @@ app_server <- function(input, output, session) {
                                                           selected = "no column"))),
         width = 3),
       mainPanel(
+        fluidRow(column(12, align = "left", uiOutput("change_time_range"))),
         div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef")),
         width = 9)
     )
@@ -476,9 +477,7 @@ app_server <- function(input, output, session) {
         val <- TRUE
       }else{
         if(len == 10){
-          first_option <- all(is.na(as.Date(vector_time, format="%Y-%m-%d")))
-          second_option <- all(is.na(as.Date(vector_time, format="%Y.%m.%d")))
-          if(first_option && second_option){
+          if(all(is.na(as.Date(vector_time, format="%Y-%m-%d")))){
             val <- TRUE
           }
         }else{
@@ -530,8 +529,28 @@ app_server <- function(input, output, session) {
       need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
            "No columns selected. Please select columns containing time data, geographic data and measurements.")
     )
-    plot_map(dataset(), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]])
+    plot_map(dataset(), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
   })
+  
+  output[["change_time_range"]] <- renderUI({ # creating slider for choosing a time range for visualization
+    if(input[["select_time_column"]] != "no column"){
+      vector_time <- dataset()[[input[["select_time_column"]]]]
+      if(unique(nchar(vector_time)) == 4){
+        sliderInput("slider_time_range", "Time range:", 
+                    min = min(vector_time),
+                    max = max(vector_time),
+                    value = c(max(vector_time), max(vector_time)),
+                    sep = "")
+      }else{
+        format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
+        sliderInput("slider_time_range", "Time range:", 
+                    min = as.Date(min(vector_time)),
+                    max = as.Date(max(vector_time)),
+                    value = c(as.Date(max(vector_time)), as.Date(max(vector_time))),
+                    timeFormat = format)
+      }
+    }
+    })
   
   ### the data visualization and prediction interface
  
@@ -556,15 +575,7 @@ app_server <- function(input, output, session) {
   )
   
   output[["prediction_plot"]] <- renderPlot({
-    date_name<-input[["select_time_column"]]
-    place_name<-input[["select_geo_column"]]
-    stat_name<-input[["select_measurements_column"]]
-    series<-prediction_area$data[[stat_name]]
-    model<-auto.arima(series,
-                       stationary = FALSE,
-                       seasonal=TRUE)
-    forecast<-forecast::forecast(series, h=3, model=model)
-    autoplot(forecast)
+    # ToDo
   }) 
   
 }

@@ -79,12 +79,12 @@ app_ui <- function(request) {
                                       shinydashboard::tabItem(tabName = "table_view",
                                                               fluidRow(column(12, shinycssloaders::withSpinner(DT::dataTableOutput("data_table", width = 800), color="#efefef"))),
                                                               fluidRow(column(12, align = "center", div(id = "box-button-return-select1", actionButton("return_to_select_data_button1", shiny::HTML("return to <br/> previous page"), class = "return-button"))))),
-                                      shinydashboard::tabItem(tabName = "visualization", 
+                                      shinydashboard::tabItem(tabName = "visualization",
                                                               uiOutput("map_visualization"),
                                                               fluidRow(column(6, div(id = "box-button-return-select2", actionButton("return_to_select_data_button2", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
                                                                        column(6, div(id = "box-button-go-prediction", shinyjs::disabled(actionButton("to_prediction_button", shiny::HTML("see time series <br/> and prediction"))))))),
                                       shinydashboard::tabItem(tabName = "prediction", 
-                                                              plotOutput("prediction_plot"),
+                                                              uiOutput("prediction_plot"),
                                                               fluidRow(column(12, align = "center", div(id = "box-button-return-visualization", actionButton("return_to_visualization_data_button", shiny::HTML("return to <br/> previous page"), class = "return-button")))))))),
     tags[["footer"]]("Made as part of a BSc Thesis", class = "footer")
   )
