@@ -15,6 +15,12 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
   if(length(data_value) == 1 && is.na(data_value)){
     data_value <- max(df[[date_column]])
   }
+  vector_geo <- as.character(df[[geo_column]])
+  if(any(unique(nchar(vector_geo)) %in% c(1,3))){
+    vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
+    vector_geo <- ifelse(nchar(vector_geo) == 3, ifelse(substr(vector_geo, 1,1) != "t", paste0("0", vector_geo), vector_geo), vector_geo)
+    df[[geo_column]] <- vector_geo
+  }
   data.table::setkeyv(df, date_column)
   if(length(data_value) == 1){
     df_plot <- df[df[[date_column]] == data_value, c(date_column, geo_column, measurements), with=FALSE] 
@@ -22,7 +28,6 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     if(nchar(as.character(data_value[1])) == 10){
       date_range <- seq(as.Date(data_value[1]), as.Date(data_value[2]), by="days")
       df_plot <- df[df[[date_column]] %in% as.character(date_range), c(date_column, geo_column, measurements), with=FALSE]
-      #df_plot[, list(sum=sum(measurements)), by=geo_column]
       df_plot <- as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
       colnames(df_plot) <- c(geo_column, measurements)
     }

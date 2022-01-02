@@ -7,7 +7,7 @@
 
 The purpose of the application is to facilitate the understanding of certain dependencies in the data and to find the necessary information. Generalization of the operation on any data allows the application to be used in various projects or analyses, making it useful to a larger group of recipients.
 
-### Example datasets
+### Example datasets for visualization and prediction
 
 1. Covid Poland
 
@@ -20,6 +20,10 @@ License: Creative Commons Attribution 3.0 Poland.
 A datasets contains number of deaths and cases of HIV from around the world from years 1990-2017. 
 Source: https://ourworldindata.org/hiv-aids
 License: Open Data Commons Attributions License for non-commercial use.
+
+### Other datasets
+
+For data visualization only for Poland, the application uses spatial data from [GADM](https://gadm.org/data.html) (the GADM license allows the use of data for academic and non-commercial purposes). The downloaded data is located in the "inst/exdata" directory.
 
 ## Installation
 

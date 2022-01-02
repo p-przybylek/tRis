@@ -401,6 +401,10 @@ app_server <- function(input, output, session) {
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
       if(input[["select_data_type"]] == "Poland"){
+        if(any(unique(nchar(vector_geo)) %in% c(1,3))){
+          vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
+          vector_geo <- ifelse(nchar(vector_geo) == 3, ifelse(substr(vector_geo, 1,1) != "t", paste0("0", vector_geo), vector_geo), vector_geo)
+        }
         val <- geo_column_check(vector_geo, "Poland")
         if(val){
           
