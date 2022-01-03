@@ -72,6 +72,10 @@
   width: 650px;
 }
 
+#box-select-file {
+  width: 325px;
+}
+
 .btn {
   background-color: #a1cdbc;
   color: #000000;
@@ -81,7 +85,7 @@
   font-weight: bold;
   font-size: 22px;
   width: 180px;
-  margin-top: 20px;
+  margin-right: 10px;
   cursor: pointer;
 }
 
@@ -99,6 +103,7 @@
 
 #box-button-left {
   text-align: left;
+  width: 190px;
 }
 
 #box-button-right {
@@ -169,10 +174,20 @@
 
 #box-button-go-prediction {
   text-align: left;
+  width: 190px;
 }
 
 #change_time_range {
   margin-left: 10px;
+}
+
+.well .shiny-input-container {
+  text-align: left;
+  margin-right: 12px;
+}
+
+.shiny-spinner-output-container {
+  margin-right: 12px;
 }
 
 .irs--shiny .irs-bar {
@@ -198,4 +213,8 @@ input[type="radio"] {
   border: 1px solid #000000;
   background-color: #a1cdbc;
   border-radius: 50%;
+}
+
+.modal-footer {
+  text-align: center;
 }

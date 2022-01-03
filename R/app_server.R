@@ -10,6 +10,8 @@
 #' @importFrom openxlsx read.xlsx
 #' @importFrom forecast forecast
 #' @importFrom leaflet renderLeaflet
+#' @importFrom shinyhelper observe_helpers
+#' 
 #' @noRd
 #' 
 app_server <- function(input, output, session) {
@@ -17,6 +19,10 @@ app_server <- function(input, output, session) {
   ### option to increase input limit to 1GB
   
   options(shiny.maxRequestSize = 1024*1024^2)
+  
+  ### add helpfiles to app
+  
+  shinyhelper::observe_helpers(help_dir = "inst/app/helpfiles")
 
   ### the start interface 
   
@@ -377,22 +383,22 @@ app_server <- function(input, output, session) {
   output[["map_visualization"]] <- renderUI( # creating data visualization UI
     sidebarLayout(
       sidebarPanel(
-        fluidRow(column(12, align = "center", selectInput("select_data_type", shiny::HTML("Please choose what <br/> your data is about:"),
-                                                          choices = c("World", "Poland")))),
-        fluidRow(column(12, align = "center", selectInput("select_geo_column", shiny::HTML("Please select column <br/> contains geographic data:"),
+        fluidRow(column(12, align = "center", add_helper(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                          choices = c("World", "Poland")), "Data_type"))),
+        fluidRow(column(12, align = "center", add_helper(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
                                                           choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"))),
-        fluidRow(column(12, align = "center", selectInput("select_time_column", shiny::HTML("Please select column <br/> contains time data:"),
+                                                          selected = "no column"), "Geo_column"))),
+        fluidRow(column(12, align = "center", add_helper(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
                                                           choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"))),
-        fluidRow(column(12, align = "center", selectInput("select_measurements_column", shiny::HTML("Please select column <br/> contains measurements:"),
+                                                          selected = "no column"), "Time_column"))),
+        fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
                                                           choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"))),
+                                                          selected = "no column"), "Measurement_column"))),
         width = 3),
       mainPanel(
         fluidRow(column(3, align = "left", uiOutput("radiobuttons_time_slider")),
                  column(9, align = "left", uiOutput("change_time_range"))),
-        div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef")),
+        div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
         width = 9)
     )
   )
@@ -496,7 +502,7 @@ app_server <- function(input, output, session) {
     if(input[["select_time_column"]] != "no column"){
       radioButtons("check_for_time_slider", "Show map for:", 
                    choices = c("A specific time value" = "one_value", 
-                               "Time period" = "period"), 
+                               "Time period (sum of measurement)" = "period"), 
                    selected = "one_value")
     }
   })
@@ -508,10 +514,12 @@ app_server <- function(input, output, session) {
         if(unique(nchar(as.character(vector_time))) == 4){
           if(input[["check_for_time_slider"]] == "one_value"){
             val <- max(vector_time)
+            title <- "Time value for visualization:"
           }else{
             val <- c(max(vector_time), max(vector_time))
+            title <- "Time range for visualization:"
           }
-          sliderInput("slider_time_range", "Time range:", 
+          sliderInput("slider_time_range", title, 
                       min = min(vector_time),
                       max = max(vector_time),
                       value = val,
@@ -521,10 +529,12 @@ app_server <- function(input, output, session) {
           format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
           if(input[["check_for_time_slider"]] == "one_value"){
             val <- as.Date(max(vector_time))
+            title <- "Time value for visualization:"
           }else{
             val <- c(as.Date(max(vector_time)), as.Date(max(vector_time)))
+            title <- "Time range for visualization:"
           }
-          sliderInput("slider_time_range", "Time range:", 
+          sliderInput("slider_time_range", title, 
                       min = as.Date(min(vector_time)),
                       max = as.Date(max(vector_time)),
                       value = val,

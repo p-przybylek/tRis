@@ -48,7 +48,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     }
     poland_powiat <- readRDS(system.file("extdata", "gadm36_POL_2_sp.rds", package = "tRis"))
     poland_powiat@data$value <- df_plot[[measurements]][match(poland_powiat@data$CC_2, df_plot[[geo_column]])]
-    pal <- leaflet::colorNumeric("plasma", NULL, na.color="transparent")
+    pal <- leaflet::colorNumeric("plasma", poland_powiat@data$value, na.color="transparent")
     map <- leaflet::leaflet(poland_powiat) %>% 
               leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
               leaflet::addPolygons(smoothFactor = 0.3,
@@ -62,8 +62,9 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                                 layerId = ~paste0(CC_2,";", NAME_2)) %>% 
               leaflet::addLegend(pal = pal,
                                  values = ~value,
+                                 title = measurements,
                                  opacity = 1,
-                                 position = "topright")
+                                 position = "bottomright")
     return(map)
   }else{
     vector_geo <- as.character(df_plot[[geo_column]])
@@ -79,7 +80,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_n3, df_plot[[geo_column]])]
       val <- "iso_n3"
     }
-    pal <- leaflet::colorNumeric("plasma", NULL, na.color="transparent")
+    pal <- leaflet::colorNumeric("plasma", world_countries@data$value, na.color="transparent")
     map <- leaflet::leaflet(world_countries) %>% 
       leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
       leaflet::addPolygons(smoothFactor = 0.3,
@@ -93,8 +94,9 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                            layerId = ~paste0(world_countries@data[[val]], ";", name_long)) %>% 
       leaflet::addLegend(pal = pal,
                          values = ~value,
+                         title = measurements,
                          opacity = 1,
-                         position = "topright")
+                         position = "bottomright")
     return(map)
   }
 }
