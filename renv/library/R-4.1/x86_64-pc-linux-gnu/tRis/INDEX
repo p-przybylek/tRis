@@ -1,0 +1,10 @@
+add_helper              Attaches a helper to a UI object.
+covid_poland            COVID-19 statistics in Poland.
+deaths_and_new_cases_hiv
+                        Statistics on the global HIV / AIDS epidemic.
+geo_column_check        Validating a given geographic column.
+plot_map                Plotting leaflet map for selected dataset and
+                        columns.
+poland_teryt            TERYT administrative codes.
+run_app                 Run the Shiny Application
+time_column_check       Validating a given date/time column.
