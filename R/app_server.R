@@ -119,8 +119,7 @@ app_server <- function(input, output, session) {
     })
   
   observe({ # when filetype and separator aren't chosen, file select is disabled
-    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" ))||
-          input[["select_filetype"]]== "xlsx"){
+    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]== "xlsx"){
       shinyjs::enable("select_file")
     }else{
       shinyjs::disable("select_file")
@@ -391,7 +390,8 @@ app_server <- function(input, output, session) {
                                                           selected = "no column"))),
         width = 3),
       mainPanel(
-        fluidRow(column(12, align = "left", uiOutput("change_time_range"))),
+        fluidRow(column(3, align = "left", uiOutput("radiobuttons_time_slider")),
+                 column(9, align = "left", uiOutput("change_time_range"))),
         div(id="box-mapplot",shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef")),
         width = 9)
     )
@@ -492,25 +492,47 @@ app_server <- function(input, output, session) {
     plot_map(dataset(), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
   })
   
-  output[["change_time_range"]] <- renderUI({ # creating slider for choosing a time range for visualization
+  output[["radiobuttons_time_slider"]] <- renderUI({ # creating radio buttons for choosing time options for visualization
     if(input[["select_time_column"]] != "no column"){
-      vector_time <- dataset()[[input[["select_time_column"]]]]
-      if(unique(nchar(vector_time)) == 4){
-        sliderInput("slider_time_range", "Time range:", 
-                    min = min(vector_time),
-                    max = max(vector_time),
-                    value = c(max(vector_time), max(vector_time)),
-                    sep = "")
-      }else{
-        format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-        sliderInput("slider_time_range", "Time range:", 
-                    min = as.Date(min(vector_time)),
-                    max = as.Date(max(vector_time)),
-                    value = c(as.Date(max(vector_time)), as.Date(max(vector_time))),
-                    timeFormat = format)
-      }
+      radioButtons("check_for_time_slider", "Show map for:", 
+                   choices = c("A specific time value" = "one_value", 
+                               "Time period" = "period"), 
+                   selected = "one_value")
     }
+  })
+  
+  observeEvent(input[["check_for_time_slider"]], { # creating slider for choosing a time range for visualization
+    output[["change_time_range"]] <- renderUI({
+      if(input[["select_time_column"]] != "no column"){
+        vector_time <- dataset()[[input[["select_time_column"]]]]
+        if(unique(nchar(as.character(vector_time))) == 4){
+          if(input[["check_for_time_slider"]] == "one_value"){
+            val <- max(vector_time)
+          }else{
+            val <- c(max(vector_time), max(vector_time))
+          }
+          sliderInput("slider_time_range", "Time range:", 
+                      min = min(vector_time),
+                      max = max(vector_time),
+                      value = val,
+                      sep = "",
+                      step = abs(vector_time[1]-vector_time[2]))
+        }else{
+          format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
+          if(input[["check_for_time_slider"]] == "one_value"){
+            val <- as.Date(max(vector_time))
+          }else{
+            val <- c(as.Date(max(vector_time)), as.Date(max(vector_time)))
+          }
+          sliderInput("slider_time_range", "Time range:", 
+                      min = as.Date(min(vector_time)),
+                      max = as.Date(max(vector_time)),
+                      value = val,
+                      timeFormat = format)
+        }
+      }
     })
+  })
   
   ### the data visualization and prediction interface
  

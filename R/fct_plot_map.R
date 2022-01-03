@@ -15,11 +15,13 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
   if(length(data_value) == 1 && is.na(data_value)){
     data_value <- max(df[[date_column]])
   }
-  vector_geo <- as.character(df[[geo_column]])
-  if(any(unique(nchar(vector_geo)) %in% c(1,3))){
-    vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
-    vector_geo <- ifelse(nchar(vector_geo) == 3, ifelse(substr(vector_geo, 1,1) != "t", paste0("0", vector_geo), vector_geo), vector_geo)
-    df[[geo_column]] <- vector_geo
+  if(map_type == "Poland"){
+    vector_geo <- as.character(df[[geo_column]])
+    if(any(unique(nchar(vector_geo)) %in% c(1,3))){
+      vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
+      vector_geo <- ifelse(nchar(vector_geo) == 3, ifelse(substr(vector_geo, 1,1) != "t", paste0("0", vector_geo), vector_geo), vector_geo)
+      df[[geo_column]] <- vector_geo
+    }
   }
   data.table::setkeyv(df, date_column)
   if(length(data_value) == 1){
