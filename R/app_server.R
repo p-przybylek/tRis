@@ -34,6 +34,21 @@ app_server <- function(input, output, session) {
                                   "covid-19 infection cases in Poland" = "covid_poland",
                                   "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
                       selected = "no_data")
+    updateSelectInput(session, "select_filetype", NULL,
+                      choices = c("Please select a type of file..." = "no_type", 
+                                  ".csv" = "csv",
+                                  ".txt" = "txt",
+                                  ".xlsx" = "xlsx"),
+                      selected = "no_type")
+    updateSelectInput(session, "select_separator", NULL,
+                      choices=c("Please select a separator..." = "no_sep", 
+                                'Comma'=',',
+                                'Semicolon'=';',
+                                'Tab'='\t',
+                                'Space'=' '),
+                      selected='no_sep')
+    shinyjs::disable("to_view_data_button1")
+    shinyjs::disable("to_visualize_data_button1")
   })
   
   shinyjs::onclick("to_user_data_button", { # going to loading user data interface
@@ -158,6 +173,8 @@ app_server <- function(input, output, session) {
   
   ### the loading example data interface
   
+  data_example_name <- reactiveVal(NA)
+  
   shinyjs::onclick("return_to_start_button2", { # back to the start interface
     new_interface <- switch(input[["interfaces"]],
                             "example_data" = "start",
@@ -173,6 +190,7 @@ app_server <- function(input, output, session) {
   })
   
   observeEvent(input[["select_example_data"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
+    data_example_name(input[["select_example_data"]])
     if((input[["select_example_data"]] != "no_data") && (!is.null(dataset()))){
       shinyjs::enable("to_view_data_button2")
       shinyjs::enable("to_visualize_data_button2")
@@ -371,6 +389,20 @@ app_server <- function(input, output, session) {
                               "user_data" = "visualization")
     }
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
+  
+    # return all inputs and buttons to default state
+    updateSelectInput(session, "select_time_column", 
+                      shiny::HTML("Please select column contains time data:"),
+                      choices = c("no column", colnames(dataset())),
+                      selected = "no column")
+    updateSelectInput(session, "select_geo_column", 
+                      shiny::HTML("Please select column contains geographic data:"),
+                      choices = c("no column", colnames(dataset())),
+                      selected = "no column")
+    updateSelectInput(session, "select_measurements_column", 
+                      shiny::HTML("Please select column contains measurements:"),
+                      choices = c("no column", colnames(dataset())),
+                      selected = "no column")
   })
   
   shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
@@ -384,13 +416,14 @@ app_server <- function(input, output, session) {
     sidebarLayout(
       sidebarPanel(
         fluidRow(column(12, align = "center", add_helper(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
-                                                          choices = c("World", "Poland")), "Data_type"))),
+                                                          choices = c("World", "Poland"),
+                                                          selected = ifelse(data_example_name() == "covid_poland", "Poland", "World")), "Data_type"))),
         fluidRow(column(12, align = "center", add_helper(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
                                                           choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"), "Geo_column"))),
+                                                          selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column"))), "Geo_column"))),
         fluidRow(column(12, align = "center", add_helper(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
                                                           choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"), "Time_column"))),
+                                                          selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column"))), "Time_column"))),
         fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
                                                           choices = c("no column", colnames(dataset())),
                                                           selected = "no column"), "Measurement_column"))),
@@ -423,7 +456,7 @@ app_server <- function(input, output, session) {
           
           # return select input to default state
           updateSelectInput(session, "select_geo_column", 
-                            shiny::HTML("Please select column <br/> contains geographic data:"),
+                            shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
         }
@@ -440,7 +473,7 @@ app_server <- function(input, output, session) {
           
           # return select input to default state
           updateSelectInput(session, "select_geo_column", 
-                            shiny::HTML("Please select column <br/> contains geographic data:"),
+                            shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
         }
@@ -463,7 +496,7 @@ app_server <- function(input, output, session) {
         
         # return select input to default state
         updateSelectInput(session, "select_time_column", 
-                          shiny::HTML("Please select column <br/> contains time data:"),
+                          shiny::HTML("Please select column contains time data:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
       }
@@ -483,7 +516,7 @@ app_server <- function(input, output, session) {
         
         # return select input to default state
         updateSelectInput(session, "select_measurements_column", 
-                          shiny::HTML("Please select column <br/> contains measurements:"),
+                          shiny::HTML("Please select column contains measurements:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
       } 
@@ -558,6 +591,9 @@ app_server <- function(input, output, session) {
   observe(
     if(!is.null(input[["map_shape_click"]]$id)){
       shinyjs::enable("to_prediction_button")
+      zoom_lvl <- ifelse(input[["select_data_type"]] == "Poland", 8, 3)
+      leaflet::leafletProxy("map") %>%
+        leaflet::setView(lng = input[["map_shape_click"]]$lng, lat = input[["map_shape_click"]]$lat, zoom = zoom_lvl)
       area_code=sub("\\;.*", "", input[["map_shape_click"]]$id)
       setkeyv(dataset(), input[["select_geo_column"]])
       prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]

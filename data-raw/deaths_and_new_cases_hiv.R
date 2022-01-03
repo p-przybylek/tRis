@@ -18,7 +18,7 @@ hiv<-hiv%>%
          Incidence=as.integer(round(Incidence)),
          Prevalence=as.integer(round(Prevalence)))
 
-# removing geographical area without ISO codes
+# removing geographical area without ISO codes - the app only accepts non-blank lines in the time and geographic column
 hiv<-hiv[nchar(hiv$Code)>=2,]
 
 deaths_and_new_cases_hiv<-hiv

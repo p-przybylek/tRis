@@ -55,6 +55,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                                 fillColor = ~pal(value),
                                 weight = 2,
                                 opacity = 1,
+                                highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE),
                                 color = "black",
                                 dashArray = "3",
                                 fillOpacity = 0.7,
@@ -64,7 +65,8 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                                  values = ~value,
                                  title = measurements,
                                  opacity = 1,
-                                 position = "bottomright")
+                                 position = "bottomright") %>% 
+              leaflet::fitBounds(lng1 = 14, lng2 = 24.5, lat1 = 50, lat2 = 55)
     return(map)
   }else{
     vector_geo <- as.character(df_plot[[geo_column]])
@@ -87,6 +89,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
                            fillColor = ~pal(value),
                            weight = 2,
                            opacity = 1,
+                           highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE),
                            color = "black",
                            dashArray = "3",
                            fillOpacity = 0.7,
