@@ -9,7 +9,7 @@
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
 #' @importFrom forecast forecast auto.arima
-#' @importFrom leaflet renderLeaflet
+#' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom plotly renderPlotly plot_ly add_trace
 #' @importFrom stats ts
@@ -603,10 +603,17 @@ app_server <- function(input, output, session) {
   observe(
     if(!is.null(input[["map_shape_click"]]$id)){
       shinyjs::enable("to_prediction_button")
+      
+      # update map visualization
       zoom_lvl <- ifelse(input[["select_data_type"]] == "Poland", 8, 3)
+      icon <- leaflet::awesomeIcons(icon = "circle", library = "fa", markerColor = "white", iconColor = "#efefef")
       leaflet::leafletProxy("map") %>%
-        leaflet::setView(lng = input[["map_shape_click"]]$lng, lat = input[["map_shape_click"]]$lat, zoom = zoom_lvl)
-      area_code=sub("\\;.*", "", input[["map_shape_click"]]$id)
+        leaflet::clearMarkers() %>% 
+        leaflet::setView(lng = input[["map_shape_click"]]$lng, lat = input[["map_shape_click"]]$lat, zoom = zoom_lvl) %>% 
+        leaflet::addAwesomeMarkers(input[["map_shape_click"]]$lng, input[["map_shape_click"]]$lat, icon = icon, label = paste0("You have chosen: ", sub(".*\\;","", input[["map_shape_click"]]$id)))
+      
+      # create dataset for predictions
+      area_code <- sub("\\;.*", "", input[["map_shape_click"]]$id)
       setkeyv(dataset(), input[["select_geo_column"]])
       #prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
       if(input[["select_data_type"]] == "Poland"){

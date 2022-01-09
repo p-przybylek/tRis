@@ -49,10 +49,15 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     if(all(len %in% c(3,5))){ 
       df_plot[[geo_column]] <- substr(vector_geo, 2, nchar(vector_geo)) 
     }
-    poland_powiat <- readRDS(system.file("extdata", "gadm36_POL_2_sp.rds", package = "tRis"))
-    poland_powiat@data$value <- df_plot[[measurements]][match(poland_powiat@data$CC_2, df_plot[[geo_column]])]
-    pal <- leaflet::colorNumeric("viridis", poland_powiat@data$value, na.color="transparent", reverse = TRUE)
-    map <- leaflet::leaflet(poland_powiat) %>% 
+    if(all(len %in% c(2,3))){
+      poland <- readRDS(system.file("extdata", "gadm36_POL_1_sp.rds", package = "tRis"))
+      poland@data$value <- df_plot[[measurements]][match(poland@data$CC_1, df_plot[[geo_column]])]
+    }else{
+      poland <- readRDS(system.file("extdata", "gadm36_POL_2_sp.rds", package = "tRis"))
+      poland@data$value <- df_plot[[measurements]][match(poland@data$CC_2, df_plot[[geo_column]])]
+    }
+    pal <- leaflet::colorNumeric("viridis", poland@data$value, na.color="transparent", reverse = TRUE)
+    map <- leaflet::leaflet(poland) %>% 
               leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
               leaflet::addPolygons(smoothFactor = 0.3,
                                 fillColor = ~pal(value),
