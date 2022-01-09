@@ -1,7 +1,7 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
-#' @import shiny shinydashboard maps forecast ggplot2 dplyr
+#' @import shiny shinydashboard maps forecast ggplot2 magrittr
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table as.data.table
@@ -11,7 +11,7 @@
 #' @importFrom forecast forecast auto.arima
 #' @importFrom leaflet renderLeaflet
 #' @importFrom shinyhelper observe_helpers
-#' @importFrom plotly plotly-shiny renderPlotly plot_ly add_trace
+#' @importFrom plotly renderPlotly plot_ly add_trace
 #' 
 #' @noRd
 #' 
@@ -631,58 +631,25 @@ app_server <- function(input, output, session) {
     temp<-as.data.frame(forecast_output)
     dates<-c(prediction_area$data[[date_name]], prediction_area$data[[date_name]][n]+1, prediction_area$data[[date_name]][n]+2, prediction_area$data[[date_name]][n]+3)
     values<-c(forecast_output$x, temp$`Point Forecast`)
-    df<-data.frame(dates=dates, values=values)
-    
-    plot_ly(df, 
-            type = 'scatter', 
-            mode = 'lines', 
-            color=I("#A1CDBC"))%>%
-      add_trace(x = ~dates, y = ~values)%>%
-      layout(showlegend = F, 
-             title=paste0('Time series for ',area_name, ' with prediction for the next 3 periods'),
-             xaxis = list(rangeslider = list(visible = T),
-                          zerolinecolor = '#ffff',
-                          zerolinewidth = 2,
-                          gridcolor = '#ffff'),
-             yaxis = list(zerolinecolor = '#ffff',
-                          zerolinewidth = 2,
-                          gridcolor = '#ffff'),
-             plot_bgcolor='#e5ecf6', 
-             margin = 0.1)
-    
-    # plot_ly(df, type = 'scatter', mode = 'lines')%>%
-    #   add_trace(x = ~dates, y = ~values)%>%
-    #   layout(showlegend = F, title=paste('Time series of', stat_name, "in", area_name),
-    #          xaxis = list(rangeslider = list(visible = T)))%>%
-    #   layout(
-    #     xaxis = list(zerolinecolor = '#ffff',
-    #                  zerolinewidth = 2,
-    #                  gridcolor = 'ffff'),
-    #     yaxis = list(zerolinecolor = '#ffff',
-    #                  zerolinewidth = 2,
-    #                  gridcolor = 'ffff'),
-    #     plot_bgcolor='#e5ecf6', margin = 0.1, width = 900)
-    
+    types<-c(rep("observation", n), rep("prediction", 3))
+    df<-data.frame(date=dates, value=values, type=types)
 
-    
-    # date_name <- input[["select_time_column"]]
-    # place_name <- input[["select_geo_column"]]
-    # stat_name <- input[["select_measurements_column"]]
-    # n <- nrow(prediction_area$data)
-    # browser()
-    # series <- ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n])
-    # model <- forecast::auto.arima(series,
-    #                               stationary = FALSE,
-    #                               seasonal=TRUE)
-    # forecast <- forecast::forecast(series, h=3, model=model)
-    # 
-    # area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
-    # 
-    # autoplot(forecast)+
-    #   ggplot2::theme_bw()+
-    #   ggplot2::xlab(date_name)+
-    #   ggplot2::ylab(stat_name)+
-    #   ggplot2::ggtitle(paste('Time series of', stat_name, "in", area_name))
+    plotly::plot_ly(df, 
+            type = "scatter", 
+            mode = "lines", 
+            colors=c("#A1CDBC", "#A997DF"))%>%
+      plotly::add_trace(x = ~date, y = ~value, color=~type)%>%
+      plotly::layout(showlegend = F, 
+             title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
+             xaxis = list(rangeslider = list(visible = T),
+                          zerolinecolor = "#ffff",
+                          zerolinewidth = 2,
+                          gridcolor = "#ffff"),
+             yaxis = list(zerolinecolor = "#ffff",
+                          zerolinewidth = 2,
+                          gridcolor = "#ffff"),
+             plot_bgcolor="#e5ecf6", 
+             margin = 0.1)
   }) 
     
 }

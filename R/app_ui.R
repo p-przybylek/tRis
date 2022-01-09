@@ -5,7 +5,7 @@
 #' @importFrom DT dataTableOutput
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs useShinyjs disabled
-#' @importFrom plotly plotly-shiny plotlyOutput
+#' @importFrom plotly plotlyOutput
 #' @noRd
 #' 
 app_ui <- function(request) {
