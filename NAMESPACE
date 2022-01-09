@@ -8,13 +8,10 @@ import(magrittr)
 import(maps)
 import(shiny, except=c(dataTableOutput, renderDataTable))
 import(shinydashboard)
-<<<<<<< HEAD
 import(shinyhelper)
 import(sp)
 import(plotly)
 import(dplyr)
-=======
->>>>>>> 27ba9d1bc81f0f9119d4dc145cd79863536dd562
 importFrom(DT,dataTableOutput)
 importFrom(DT,renderDataTable)
 importFrom(config,get)
