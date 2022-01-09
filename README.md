@@ -7,6 +7,21 @@
 
 The purpose of the application is to facilitate the understanding of certain dependencies in the data and to find the necessary information. Generalization of the operation on any data allows the application to be used in various projects or analyses, making it useful to a larger group of recipients.
 
+### Installation
+
+The application works with RStudio and the Google Chrome browser.
+
+Installation:
+```
+devtools::install_github("p-przybylek/tRis")
+```
+To run the app locally:
+```
+tRis::run_app()
+```
+
+To open the application in the browser, click the "open in browser" button or copy the website address shown on the bar of the running shiny app.
+
 ### Example datasets for visualization and prediction
 
 1. Covid Poland
@@ -23,19 +38,6 @@ License: Open Data Commons Attributions License for non-commercial use.
 
 ### Other datasets
 
-For data visualization only for Poland, the application uses spatial data from [GADM](https://gadm.org/data.html) (the GADM license allows the use of data for academic and non-commercial purposes). The downloaded data is located in the "inst/exdata" directory.
+For data visualization from Poland, the application uses spatial data from [GADM](https://gadm.org/data.html) (the GADM license allows the use of data for academic and non-commercial purposes). The downloaded data is located in the "inst/exdata" directory. 
 
-## Installation
-
-The application works with RStudio and the Google Chrome browser.
-
-Installation:
-```
-devtools::install_github("p-przybylek/tRis")
-```
-To run the app locally:
-```
-tRis::run_app()
-```
-
-To open the application in the browser, click the "open in browser" button or copy the website address shown on the bar of the running shiny app.
+The geographic correctness of measurement data from Poland is carried out using the territorial codes of the register of the official territorial division of Poland (TERYT). Valid TERYT codes are in the file `poland_teryt.rda`. The raw data subjected to the study come from the website of the [Central Statistical Office](https://eteryt.stat.gov.pl/eTeryt/rejestr_teryt/udostepnianie_danych/baza_teryt/uzytkownicy_indywidualni/pobieranie/pliki_pelne.aspx?contrast=default) (Główny Urząd Statystyczny pl.), whose [license](https://stat.gov.pl/copyright) allows the use of this data for own studies.

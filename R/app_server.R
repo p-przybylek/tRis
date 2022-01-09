@@ -1,14 +1,18 @@
 #' The application server-side
 #' 
 #' @param input,output,session Internal parameters for {shiny}.
+<<<<<<< HEAD
 #' @import shiny shinydashboard maps forecast ggplot2 dplyr
+=======
+#' @import shiny shinydashboard ggplot2
+>>>>>>> 27ba9d1bc81f0f9119d4dc145cd79863536dd562
 #' @importFrom shinyalert shinyalert
 #' @importFrom shinyjs onclick enable disable
 #' @importFrom data.table as.data.table
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
-#' @importFrom forecast forecast
+#' @importFrom forecast forecast auto.arima
 #' @importFrom leaflet renderLeaflet
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom plotly plotly-shiny renderPlotly plot_ly add_trace

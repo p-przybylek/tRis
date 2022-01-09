@@ -7,8 +7,10 @@
 #' @param measurements \code{character} name of column contains measurements
 #' @param data_value \code{character} a value of date_column for select rows to visualization
 #' 
-#' @import data.table sp leaflet magrittr rnaturalearth
+#' @import data.table leaflet magrittr
+#' @importFrom rnaturalearth ne_countries
 #' @importFrom stats aggregate
+#' 
 #' @return map visualization
 #' 
 plot_map <- function(df, map_type, geo_column, date_column, measurements, data_value = NA){
@@ -30,13 +32,13 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     if(nchar(as.character(data_value[1])) == 10){
       date_range <- seq(as.Date(data_value[1]), as.Date(data_value[2]), by="days")
       df_plot <- df[df[[date_column]] %in% as.character(date_range), c(date_column, geo_column, measurements), with=FALSE]
-      df_plot <- as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
+      df_plot <- data.table::as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
       colnames(df_plot) <- c(geo_column, measurements)
     }
     else{
       date_range <- seq(data_value[1], data_value[2])
       df_plot <- df[df[[date_column]] %in% date_range, c(date_column, geo_column, measurements), with=FALSE]
-      df_plot <- as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
+      df_plot <- data.table::as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=sum))
       colnames(df_plot) <- c(geo_column, measurements) 
     }
   }
@@ -48,7 +50,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
     }
     poland_powiat <- readRDS(system.file("extdata", "gadm36_POL_2_sp.rds", package = "tRis"))
     poland_powiat@data$value <- df_plot[[measurements]][match(poland_powiat@data$CC_2, df_plot[[geo_column]])]
-    pal <- leaflet::colorNumeric("plasma", poland_powiat@data$value, na.color="transparent")
+    pal <- leaflet::colorNumeric("viridis", poland_powiat@data$value, na.color="transparent", reverse = TRUE)
     map <- leaflet::leaflet(poland_powiat) %>% 
               leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
               leaflet::addPolygons(smoothFactor = 0.3,
@@ -82,7 +84,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_n3, df_plot[[geo_column]])]
       val <- "iso_n3"
     }
-    pal <- leaflet::colorNumeric("plasma", world_countries@data$value, na.color="transparent")
+    pal <- leaflet::colorNumeric("viridis", world_countries@data$value, na.color="transparent", reverse = TRUE)
     map <- leaflet::leaflet(world_countries) %>% 
       leaflet::addProviderTiles(providers$CartoDB.Positron) %>%
       leaflet::addPolygons(smoothFactor = 0.3,
