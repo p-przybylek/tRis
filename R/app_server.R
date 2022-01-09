@@ -437,7 +437,7 @@ app_server <- function(input, output, session) {
     )
   )
   
-  observeEvent(input[["select_geo_column"]], { # check selected column for geografic data
+  observeEvent(input[["select_geo_column"]], { # check selected column for geographic data
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
       if(input[["select_data_type"]] == "Poland"){
