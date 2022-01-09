@@ -12,6 +12,7 @@
 #' @importFrom leaflet renderLeaflet
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom plotly renderPlotly plot_ly add_trace
+#' @importFrom stats ts
 #' 
 #' @noRd
 #' 
@@ -617,11 +618,11 @@ app_server <- function(input, output, session) {
     vector_time <- prediction_area$data[[date_name]]
     # RRRR format
     if(unique(nchar(as.character(vector_time))) == 4){
-      series <- ts(prediction_area$data[[stat_name]], start=vector_time[1], end=vector_time[n])
+      series <- stats::ts(prediction_area$data[[stat_name]], start=vector_time[1], end=vector_time[n])
     }else{
       format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
       prediction_area$data[[date_name]]<-as.Date(prediction_area$data[[date_name]])
-      series <- ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n]+1)
+      series <- stats::ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n]+1)
     }
     model <- forecast::auto.arima(series,
                                   stationary = FALSE,
