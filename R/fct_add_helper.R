@@ -3,7 +3,7 @@
 #' @param fun \code{function} UI object to have helper attached
 #' @param content \code{character} A title of a helper
 #' 
-#' @import shinyhelper
+#' @importFrom shinyhelper helper
 #' @return A shiny.tag.list - UI object with helper attached
 #' 
 add_helper <- function(fun, content){
