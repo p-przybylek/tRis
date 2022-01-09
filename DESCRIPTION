@@ -28,7 +28,6 @@ Imports:
     stats,
     forecast,
     ggplot2,
-    magrittr,
     plotly
 Encoding: UTF-8
 LazyData: true
