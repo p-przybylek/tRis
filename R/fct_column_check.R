@@ -2,7 +2,7 @@
 #' 
 #' @param vector_time \code{character} selected column for validaling
 #' 
-#' @return logical value
+#' @return logical value, TRUE when the data format is invalid
 #' 
 time_column_check <- function(vector_time){
   len <- unique(nchar(vector_time))
@@ -35,7 +35,7 @@ time_column_check <- function(vector_time){
 #' 
 #' @import maps
 #' 
-#' @return logical value
+#' @return logical value, TRUE when the data format is invalid
 #' 
 geo_column_check <- function(vector_geo, data_type){
   len <- unique(nchar(vector_geo))

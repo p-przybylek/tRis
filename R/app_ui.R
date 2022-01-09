@@ -5,6 +5,7 @@
 #' @importFrom DT dataTableOutput
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs useShinyjs disabled
+#' @importFrom plotly plotly-shiny plotlyOutput
 #' @noRd
 #' 
 app_ui <- function(request) {
@@ -87,7 +88,7 @@ app_ui <- function(request) {
                                                               fluidRow(column(6, div(id = "box-button-return-select2", actionButton("return_to_select_data_button2", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
                                                                        column(6, div(id = "box-button-go-prediction", add_helper(shinyjs::disabled(actionButton("to_prediction_button", shiny::HTML("see time series <br/> and prediction"))), "Prediction"))))),
                                       shinydashboard::tabItem(tabName = "prediction", 
-                                                              add_helper(shinycssloaders::withSpinner(plotOutput("prediction_plot", width="800px"), color = "#efefef"), "Plot_with_predictions"),
+                                                              add_helper(shinycssloaders::withSpinner(plotlyOutput("prediction_plot", width="800px"), color = "#efefef"), "Plot_with_predictions"),
                                                               br(),
                                                               fluidRow(column(12, align = "center", div(id = "box-button-return-visualization", actionButton("return_to_visualization_data_button", shiny::HTML("return to <br/> previous page"), class = "return-button")))))))),
     tags[["footer"]]("Made as part of a BSc Thesis", class = "footer")
