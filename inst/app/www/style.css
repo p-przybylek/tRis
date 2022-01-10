@@ -224,3 +224,11 @@ input[type="radio"]:checked {
 .modal-footer {
   text-align: center;
 }
+
+.fa, .fas {
+  font-weight: 900 !important;
+}
+
+.fa, .far, .fas {
+  font-family: "Font Awesome 5 Free" !important;
+}

@@ -393,18 +393,28 @@ app_server <- function(input, output, session) {
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   
     # return all inputs and buttons to default state
+    updateSelectInput(session, "select_data_type", 
+                      shiny::HTML("Please choose what your data is about:"),
+                      choices = c("World", "Poland"),
+                      selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))
     updateSelectInput(session, "select_time_column", 
                       shiny::HTML("Please select column contains time data:"),
                       choices = c("no column", colnames(dataset())),
-                      selected = "no column")
+                      selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))
     updateSelectInput(session, "select_geo_column", 
                       shiny::HTML("Please select column contains geographic data:"),
                       choices = c("no column", colnames(dataset())),
-                      selected = "no column")
+                      selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))
     updateSelectInput(session, "select_measurements_column", 
                       shiny::HTML("Please select column contains measurements:"),
                       choices = c("no column", colnames(dataset())),
-                      selected = "no column")
+                      selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column")))
+    
+    # set all output to NULL
+    output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+    output[["change_time_range"]] <- renderUI(NULL)
+    output[["map"]] <- renderLeaflet(NULL)
+    output[["prediction_plot"]] <- renderPlotly(NULL)
   })
   
   shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
@@ -443,6 +453,10 @@ app_server <- function(input, output, session) {
       shinyjs::enable("select_data_type")
       shinyjs::enable("select_geo_column")
       shinyjs::enable("select_time_column")
+    }else{
+      shinyjs::disable("select_data_type")
+      shinyjs::disable("select_geo_column")
+      shinyjs::disable("select_time_column")
     }
   )
   
@@ -550,7 +564,7 @@ app_server <- function(input, output, session) {
                                "Time period (sum of measurement)" = "period"), 
                    selected = "one_value")
     }
-  })
+  }) 
   
   observeEvent(input[["check_for_time_slider"]], { # creating slider for choosing a time range for visualization
     output[["change_time_range"]] <- renderUI({
