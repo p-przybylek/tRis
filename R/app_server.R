@@ -509,7 +509,7 @@ app_server <- function(input, output, session) {
   
   observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
     if(input[["select_measurements_column"]] != "no column"){
-      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer"){
+      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer" && all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
         # display error
         shinyalert::shinyalert("Invalid column type",
@@ -598,7 +598,6 @@ app_server <- function(input, output, session) {
   
   observeEvent(input[["map_shape_click"]], {
     if(!is.null(input[["map_shape_click"]]$id)){
-      shinyjs::enable("to_prediction_button")
       
       # update map visualization
       zoom_lvl <- ifelse(input[["select_data_type"]] == "Poland", 8, 3)
@@ -616,49 +615,53 @@ app_server <- function(input, output, session) {
          area_code=paste0("t", area_code)
       }
       prediction_area$data <- isolate(dataset())[isolate(dataset())[[input[["select_geo_column"]]]]==area_code, c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
+      prediction_area$data <- na.omit(prediction_area$data)
       
-      output[["prediction_plot"]] <- renderPlotly({
-        date_name <- input[["select_time_column"]]
-        place_name <- input[["select_geo_column"]]
-        stat_name <- input[["select_measurements_column"]]
-        n<-nrow(prediction_area$data)
-        vector_time <- prediction_area$data[[date_name]]
-        # RRRR format
-        if(unique(nchar(as.character(vector_time))) == 4){
-          series <- stats::ts(prediction_area$data[[stat_name]], start=vector_time[1], end=vector_time[n])
-        }else{
-          format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-          prediction_area$data[[date_name]]<-as.Date(prediction_area$data[[date_name]])
-          series <- stats::ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n]+1)
-        }
-        model <- forecast::auto.arima(series,
-                                      stationary = FALSE,
-                                      seasonal=TRUE)
-        forecast_output <- forecast::forecast(series, h=3, model=model)
-        area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
-        temp<-as.data.frame(forecast_output)
-        dates<-c(prediction_area$data[[date_name]], prediction_area$data[[date_name]][n]+1, prediction_area$data[[date_name]][n]+2, prediction_area$data[[date_name]][n]+3)
-        values<-c(forecast_output$x, temp$`Point Forecast`)
-        types<-c(rep("observation", n), rep("prediction", 3))
-        df<-data.frame(date=dates, value=values, type=types)
-        
-        plotly::plot_ly(df, 
-                        type = "scatter", 
-                        mode = "lines", 
-                        colors=c("#A1CDBC", "#A997DF"))%>%
-          plotly::add_trace(x = ~date, y = ~value, color=~type)%>%
-          plotly::layout(showlegend = F, 
-                         title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
-                         xaxis = list(rangeslider = list(visible = T),
-                                      zerolinecolor = "#ffff",
-                                      zerolinewidth = 2,
-                                      gridcolor = "#ffff"),
-                         yaxis = list(zerolinecolor = "#ffff",
-                                      zerolinewidth = 2,
-                                      gridcolor = "#ffff"),
-                         plot_bgcolor="#e5ecf6", 
-                         margin = 0.1)
-      })
+      if(nrow(prediction_area$data) != 0){
+        shinyjs::enable("to_prediction_button")
+        output[["prediction_plot"]] <- renderPlotly({
+          date_name <- input[["select_time_column"]]
+          place_name <- input[["select_geo_column"]]
+          stat_name <- input[["select_measurements_column"]]
+          n<-nrow(prediction_area$data)
+          vector_time <- prediction_area$data[[date_name]]
+          # RRRR format
+          if(unique(nchar(as.character(vector_time))) == 4){
+            series <- stats::ts(prediction_area$data[[stat_name]], start=vector_time[1], end=vector_time[n])
+          }else{
+            format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
+            prediction_area$data[[date_name]]<-as.Date(prediction_area$data[[date_name]])
+            series <- stats::ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n]+1)
+          }
+          model <- forecast::auto.arima(series,
+                                        stationary = FALSE,
+                                        seasonal=TRUE)
+          forecast_output <- forecast::forecast(series, h=3, model=model)
+          area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
+          temp<-as.data.frame(forecast_output)
+          dates<-c(prediction_area$data[[date_name]], prediction_area$data[[date_name]][n]+1, prediction_area$data[[date_name]][n]+2, prediction_area$data[[date_name]][n]+3)
+          values<-c(forecast_output$x, temp$`Point Forecast`)
+          types<-c(rep("observation", n), rep("prediction", 3))
+          df<-data.frame(date=dates, value=values, type=types)
+          
+          plotly::plot_ly(df, 
+                          type = "scatter", 
+                          mode = "lines", 
+                          colors=c("#A1CDBC", "#A997DF"))%>%
+            plotly::add_trace(x = ~date, y = ~value, color=~type)%>%
+            plotly::layout(showlegend = F, 
+                           title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
+                           xaxis = list(rangeslider = list(visible = T),
+                                        zerolinecolor = "#ffff",
+                                        zerolinewidth = 2,
+                                        gridcolor = "#ffff"),
+                           yaxis = list(zerolinecolor = "#ffff",
+                                        zerolinewidth = 2,
+                                        gridcolor = "#ffff"),
+                           plot_bgcolor="#e5ecf6", 
+                           margin = 0.1)
+        })  
+      }
     }else{
       shinyjs::disable("to_prediction_button")
     }
