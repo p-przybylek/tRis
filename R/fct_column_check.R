@@ -69,9 +69,9 @@ geo_column_check <- function(vector_geo, data_type){
       if(all(len %in% c(2,8)) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a2))){
         val <- TRUE
       }else if(all(len %in% c(3,8))){
-        if(all(is.na(as.numeric(vector_geo))) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3))){
+        if(all(is.na(suppressWarnings(as.numeric(vector_geo)))) && !all(vector_geo %in% c("OWID_WRL", maps::iso3166$a3))){
           val <- TRUE
-        }else if(!all(is.na(as.numeric(vector_geo)))){
+        }else if(!all(is.na(suppressWarnings(as.numeric(vector_geo))))){
           val <- TRUE
         }
       }else if(len == 8 && (length(len) == 1)){

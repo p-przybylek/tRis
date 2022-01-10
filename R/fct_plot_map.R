@@ -79,11 +79,11 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
   }else{
     vector_geo <- as.character(df_plot[[geo_column]])
     len <- unique(nchar(vector_geo))
-    world_countries <- rnaturalearth::ne_countries(returnclass='sp')
+    world_countries <- rnaturalearth::ne_countries(scale = 50, returnclass="sp")
     if(all(len %in% c(2,8))){
       world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_a2, df_plot[[geo_column]])] 
       val <- "iso_a2"
-    }else if(all(len %in% c(3,8)) && is.na(as.numeric(vector_geo))){
+    }else if(all(len %in% c(3,8)) && suppressWarnings(is.na(as.numeric(vector_geo)))){
       world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_a3, df_plot[[geo_column]])]
       val <- "iso_a3"
     }else{
