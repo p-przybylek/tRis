@@ -9,7 +9,7 @@
 #' 
 #' @import data.table leaflet magrittr
 #' @importFrom rnaturalearth ne_countries
-#' @importFrom stats aggregate
+#' @importFrom stats aggregate na.omit
 #' 
 #' @return map visualization
 #' 
@@ -90,6 +90,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       world_countries@data$value <- df_plot[[measurements]][match(world_countries@data$iso_n3, df_plot[[geo_column]])]
       val <- "iso_n3"
     }
+    if(!all(is.finite(stats::na.omit(world_countries@data$value)))) return(NULL)
     pal <- leaflet::colorNumeric("viridis", world_countries@data$value, na.color="transparent", reverse = TRUE)
     map <- leaflet::leaflet(world_countries) %>% 
       leaflet::addProviderTiles(providers$CartoDB.Positron) %>%

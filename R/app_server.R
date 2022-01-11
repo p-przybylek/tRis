@@ -3,7 +3,7 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #' @import shiny shinydashboard maps forecast ggplot2 magrittr
 #' @importFrom shinyalert shinyalert
-#' @importFrom shinyjs onclick enable disable disabled
+#' @importFrom shinyjs onclick enable disable disabled refresh
 #' @importFrom data.table as.data.table
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
@@ -12,7 +12,7 @@
 #' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom plotly renderPlotly plot_ly add_trace
-#' @importFrom stats ts
+#' @importFrom stats ts na.omit
 #' 
 #' @noRd
 #' 
@@ -31,26 +31,7 @@ app_server <- function(input, output, session) {
   data_load <- reactiveVal(NA)
   
   shinyjs::onclick("homeclick", { # reset app
-    updateSelectInput(session, "select_example_data", NULL,
-                      choices = c("Please select the data..." = "no_data",
-                                  "covid-19 infection cases in Poland" = "covid_poland",
-                                  "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
-                      selected = "no_data")
-    updateSelectInput(session, "select_filetype", NULL,
-                      choices = c("Please select a type of file..." = "no_type", 
-                                  ".csv" = "csv",
-                                  ".txt" = "txt",
-                                  ".xlsx" = "xlsx"),
-                      selected = "no_type")
-    updateSelectInput(session, "select_separator", NULL,
-                      choices=c("Please select a separator..." = "no_sep", 
-                                'Comma'=',',
-                                'Semicolon'=';',
-                                'Tab'='\t',
-                                'Space'=' '),
-                      selected='no_sep')
-    shinyjs::disable("to_view_data_button1")
-    shinyjs::disable("to_visualize_data_button1")
+    shinyjs::refresh()
   })
   
   shinyjs::onclick("to_user_data_button", { # going to loading user data interface
@@ -59,6 +40,7 @@ app_server <- function(input, output, session) {
                      "user_data" = "start")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
     data_load("user_data")
+    data_example_name(NA)
   })
   
   shinyjs::onclick("to_example_data_button", { # going to loading example data interface
@@ -67,6 +49,7 @@ app_server <- function(input, output, session) {
                             "example_data" = "start")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
     data_load("example_data")
+    data_example_name(NA)
   })
   
   ### the loading user data interface
@@ -76,25 +59,7 @@ app_server <- function(input, output, session) {
                             "user_data" = "start",
                             "start" = "user_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
-    
-    # return all inputs and buttons to default state
-    updateSelectInput(session, "select_filetype", NULL,
-                      choices = c("Please select a type of file..." = "no_type", 
-                                  ".csv" = "csv",
-                                  ".txt" = "txt",
-                                  ".xlsx" = "xlsx"),
-                      selected = "no_type")
-    updateSelectInput(session, "select_separator", NULL,
-                choices=c("Please select a separator..." = "no_sep", 
-                          'Comma'=',',
-                          'Semicolon'=';',
-                          'Tab'='\t',
-                          'Space'=' '),
-                selected='no_sep')
-    shinyjs::disable("to_view_data_button1")
-    shinyjs::disable("to_visualize_data_button1")
-    
-    
+    shinyjs::refresh()
   })
   
   output[["select_file"]] <- renderUI({ # render select file
@@ -182,13 +147,7 @@ app_server <- function(input, output, session) {
                             "example_data" = "start",
                             "start" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
-    
-    # return select input to default state
-    updateSelectInput(session, "select_example_data", NULL,
-                      choices = c("Please select the data..." = "no_data",
-                                  "covid-19 infection cases in Poland" = "covid_poland",
-                                  "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
-                      selected = "no_data")
+    shinyjs::refresh()
   })
   
   observeEvent(input[["select_example_data"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
@@ -395,6 +354,7 @@ app_server <- function(input, output, session) {
     leaflet::leafletProxy("map") %>% clearMarkers()
     shinyjs::disable("to_prediction_button")
     output[["prediction_plot"]] <- renderPlotly(NULL)
+    output[["map"]] <- renderLeaflet(NULL)
   })
   
   shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
@@ -527,15 +487,17 @@ app_server <- function(input, output, session) {
     }
   })
   
-  observeEvent({input[["slider_time_range"]]}, {
-    output[["map"]] <- renderLeaflet({ # ploting map
-      validate(
-        need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
-             "No columns selected. Please select columns containing time data, geographic data and measurements.")
-      )
-      plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
-    })
-  })
+  observe(
+    if(!is.null(input[["slider_time_range"]]) && !is.infinite(input[["slider_time_range"]])){
+      output[["map"]] <- renderLeaflet({ # ploting map
+        validate(
+          need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
+               "No columns selected. Please select columns containing time data, geographic data and measurements.")
+        )
+        plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
+      })
+    }
+  )
   
   observeEvent(input[["select_time_column"]], {
     output[["radiobuttons_time_slider"]] <- renderUI({ # creating radio buttons for choosing time options for visualization
@@ -552,6 +514,7 @@ app_server <- function(input, output, session) {
     output[["change_time_range"]] <- renderUI({
       if(input[["select_time_column"]] != "no column"){
         vector_time <- isolate(dataset())[[input[["select_time_column"]]]]
+        if(is.null(vector_time)) return(NULL)
         if(unique(nchar(as.character(vector_time))) == 4){
           if(input[["check_for_time_slider"]] == "one_value"){
             val <- max(vector_time)
@@ -615,7 +578,7 @@ app_server <- function(input, output, session) {
          area_code=paste0("t", area_code)
       }
       prediction_area$data <- isolate(dataset())[isolate(dataset())[[input[["select_geo_column"]]]]==area_code, c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
-      prediction_area$data <- na.omit(prediction_area$data)
+      prediction_area$data <- stats::na.omit(prediction_area$data)
       
       if(nrow(prediction_area$data) != 0){
         shinyjs::enable("to_prediction_button")
