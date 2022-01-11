@@ -78,25 +78,6 @@ app_server <- function(input, output, session) {
               placeholder = "Please choose a file...")
 
   })
-  
-  observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
-    output[["select_file"]] <- renderUI({
-
-      # validate extension list based on the chosen filetype
-      extension_list <- switch(input[["select_filetype"]],
-                               "csv" = c("text/csv",'csv'),
-                               "txt" = c("text/plain",".txt"),
-                               "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                               "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
-      )
-      fileInput("select_file", NULL,
-                accept = extension_list,
-                buttonLabel = "Upload",
-                placeholder = "Please choose a file...")
-      
-    })
-    
-  })
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
@@ -327,7 +308,7 @@ app_server <- function(input, output, session) {
   })
   
   output[["data_table"]] <- DT::renderDataTable({
-    utils::tail(dataset(), 10)
+    utils::tail(dataset(), 20)
   },
   options = list(scrollX = TRUE,
                  deferRender = TRUE,
