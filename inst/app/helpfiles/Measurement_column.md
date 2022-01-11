@@ -1,6 +1,6 @@
-### helpfiles/Measurement_column.md - Under Development
+### <b> Measurement column selection </b>
 
 ***
 
-This helpfile is under not finished yet
+Select a column that contains measurements. The chosen column must be numerical and nonempty (must contain some observations).
 
