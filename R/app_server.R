@@ -610,36 +610,62 @@ app_server <- function(input, output, session) {
   )
   
   output[["prediction_plot"]] <- renderPlotly({
-    date_name <- input[["select_time_column"]]
-    place_name <- input[["select_geo_column"]]
-    stat_name <- input[["select_measurements_column"]]
+    # number of observations
     n<-nrow(prediction_area$data)
-    vector_time <- prediction_area$data[[date_name]]
-    # RRRR format
+    
+    # number of periods to predict
+    h_to_pred<-3
+    
+    vector_time <- prediction_area$data[[input[["select_time_column"]]]]
+    vector_stat <-prediction_area$data[[input[["select_measurements_column"]]]]
+    
+    # create time series 
     if(unique(nchar(as.character(vector_time))) == 4){
-      series <- ts(prediction_area$data[[stat_name]], start=vector_time[1], end=vector_time[n])
+      
+      # RRRR format
+      series <- ts(vector_stat, start=vector_time[1], end=vector_time[n])
     }else{
+      
+      # RRRR-MM-DD or RRRR.MM.DD format
       format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-      prediction_area$data[[date_name]]<-as.Date(prediction_area$data[[date_name]])
-      series <- ts(prediction_area$data[[stat_name]], start=prediction_area$data[[date_name]][1], end=prediction_area$data[[date_name]][n]+1)
+      vector_time<-as.Date(vector_time)
+      series <- ts(vector_stat, start=vector_time[1], end=vector_time[n]+1)
     }
+    browser()
     model <- forecast::auto.arima(series,
                                   stationary = FALSE,
                                   seasonal=TRUE)
-    forecast_output <- forecast::forecast(series, h=3, model=model)
+    forecast_output <- forecast::forecast(series, h=h_to_pred, model=model)
+    
+    ## check datatype in arima and adjust forecast
+    if(class(vector_time)=="integer"){
+      
+      forecast_output$mean<-as.integer(forecast_output$mean)
+      forecast_output$upper<-as.integer(forecast_output$upper)
+      forecast_output$lower<-as.integer(forecast_output$lower)
+    }else{
+      d<-decimal_places(vector_stat)
+      forecast_output$mean<-round(forecast_output$mean, d)
+      forecast_output$upper<-round(forecast_output$upper, d)
+      forecast_output$lower<-round(forecast_output$lower, d)
+    }
+    
     area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
-    temp<-as.data.frame(forecast_output)
-    dates<-c(prediction_area$data[[date_name]], prediction_area$data[[date_name]][n]+1, prediction_area$data[[date_name]][n]+2, prediction_area$data[[date_name]][n]+3)
-    values<-c(forecast_output$x, temp$`Point Forecast`)
-    types<-c(rep("observation", n), rep("prediction", 3))
-    df<-data.frame(date=dates, value=values, type=types)
+    dates<-c(vector_time, vector_time[n]+1:h_to_pred)
+    values<-c(forecast_output$x, forecast_output$mean)
+    types<-c(rep("observation", n), rep("prediction", h_to_pred))
+    high80<-c(rep(NA, n), forecast_output$upper[1:h_to_pred])
+    low80<-c(rep(NA, n), forecast_output$lower[1:h_to_pred])
+    df<-data.frame(date=dates, value=values, type=types, high80=high80, low80=low80)
 
     plotly::plot_ly(df, 
             type = "scatter", 
             mode = "lines", 
             colors=c("#A1CDBC", "#A997DF"))%>%
-      plotly::add_trace(x = ~date, y = ~value, color=~type)%>%
-      plotly::layout(showlegend = F, 
+      plotly::add_trace(x = ~date, y = ~value, color=~type, name="Mean")%>%
+      plotly::add_trace(x = ~date,  y= ~high80, type = 'scatter', mode = 'lines',
+                        line = list(color = 'transparent'))%>%
+      plotly::layout(showlegend = FALSE, 
              title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
              xaxis = list(rangeslider = list(visible = T),
                           zerolinecolor = "#ffff",
