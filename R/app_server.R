@@ -62,20 +62,25 @@ app_server <- function(input, output, session) {
     shinyjs::refresh()
   })
   
-  output[["select_file"]] <- renderUI({ # render select file
+  extensions<-reactiveValues(list=NA)
+  
+  output[["select_file"]] <- renderUI({ # render select file <-NAPISAĆ funkcję z dwóch poniższych fragmentów!
 
     # validate extension list based on the chosen filetype
-    extension_list <- switch(input[["select_filetype"]],
+    extensions$list<-switch(input[["select_filetype"]],
                              "csv" = c("text/csv",'csv'),
                              "txt" = c("text/plain",".txt"),
                              "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                             "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+                             "no_type" = c("")
                              )
 
-    fileInput("select_file", NULL,
-              accept = extension_list,
+    shinyjs::disabled(
+      fileInput("select_file", NULL,
+              accept = extensions$list,
               buttonLabel = "Upload",
               placeholder = "Please choose a file...")
+    )
+    
 
   })
   
@@ -83,20 +88,29 @@ app_server <- function(input, output, session) {
     output[["select_file"]] <- renderUI({
 
       # validate extension list based on the chosen filetype
-      extension_list <- switch(input[["select_filetype"]],
+      extensions$list<-switch(input[["select_filetype"]],
                                "csv" = c("text/csv",'csv'),
                                "txt" = c("text/plain",".txt"),
                                "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                               "no_type" = c("text/csv",'csv', "text/plain",".txt","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx")
+                               "no_type" = c()
       )
-      fileInput("select_file", NULL,
-                accept = extension_list,
-                buttonLabel = "Upload",
-                placeholder = "Please choose a file...")
+      shinyjs::disabled(
+        fileInput("select_file", NULL,
+                  accept = extensions$list,
+                  buttonLabel = "Upload",
+                  placeholder = "Please choose a file...")
+      )
+      
+    
       
     })
     
   })
+  
+  
+  # observe({
+  #   shinyjs::toggleState("select_separator", (input[["select_filetype"]] != 'xlsx'))
+  # })
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
@@ -106,13 +120,40 @@ app_server <- function(input, output, session) {
       }
     })
   
-  observe({ # when filetype and separator aren't chosen, file select is disabled
+  # observe({
+  #   shinyjs::toggleState("select_file", (input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" ))
+  # })
+
+  observe({ # when filetype and separator aren chosen, file select is enabled
     if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]== "xlsx"){
       shinyjs::enable("select_file")
+      extensions$list<-switch(input[["select_filetype"]],
+                               "csv" = c("text/csv",'csv'),
+                               "txt" = c("text/plain",".txt"),
+                               "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                               "no_type" = c("")
+                               
+      )
+      fileInput("select_file", NULL,
+                accept = extensions$list,
+                buttonLabel = "Upload",
+                placeholder = "Please choose a file...")
     }else{
       shinyjs::disable("select_file")
     }
   })
+  
+  ### navigating
+  
+  # observe({
+  #   shinyjs::toggleState("to_view_data_button1", !is.null(dataset()))
+  # })
+  # 
+  # observe({
+  #   shinyjs::toggleState("to_visualize_data_button1", !is.null(dataset()))
+  # })
+
+  
   
   observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
     if(!is.null(dataset())){
@@ -138,6 +179,8 @@ app_server <- function(input, output, session) {
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
   
+
+  
   ### the loading example data interface
   
   data_example_name <- reactiveVal(NA)
@@ -161,6 +204,16 @@ app_server <- function(input, output, session) {
     }
   })
   
+  observe({
+    shinyjs::toggleState("to_view_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
+  })
+  
+  observe({
+    shinyjs::toggleState("to_visualize_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
+  })
+  
+
+  
   shinyjs::onclick("to_view_data_button2", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "example_data" = "table_view",
@@ -174,6 +227,7 @@ app_server <- function(input, output, session) {
                             "visualization" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
+
   
   ### loading a dataset
 
@@ -626,30 +680,51 @@ app_server <- function(input, output, session) {
             
             area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
             dates<-c(vector_time, vector_time[n]+1:h_to_pred)
-            values<-c(forecast_output$x, forecast_output$mean)
-            types<-c(rep("observation", n), rep("prediction", h_to_pred))
-            high80<-c(rep(NA, n), forecast_output$upper[1:h_to_pred])
-            low80<-c(rep(NA, n), forecast_output$lower[1:h_to_pred])
+            observations<-c(forecast_output$x, rep(NA, 3))
+            mean<-c(rep(NA, n-1), forecast_output$x[n], forecast_output$mean[1:h_to_pred])
+            high80<-c(rep(NA, n-1),forecast_output$x[n],  forecast_output$upper[1:h_to_pred])
+            low80<-c(rep(NA, n-1),forecast_output$x[n], forecast_output$lower[1:h_to_pred])
             
-            df<-data.frame(date=dates, value=values, type=types, high80=high80, low80=low80)
+            df<-data.frame(date=dates, observations=observations, mean=mean, high80=high80, low80=low80)
+            
+            vline <- function(x = 0) {
+              list(
+                type = "line",
+                y0 = 0,
+                y1 = 1,
+                yref = "paper",
+                x0 = x,
+                x1 = x,
+                line = list(color = "#B9C3D1")
+              )
+            }
+            
             plotly::plot_ly(df, 
                             type = "scatter", 
                             mode = "lines", 
                             colors=c("#A1CDBC", "#A997DF"))%>%
-              plotly::add_trace(x = ~date, y = ~value, color=~type, name="Mean")%>%
+              plotly::add_trace(x = ~date, y = ~observations, line=list(color="#A1CDBC"),  name="Observations")%>%
+              plotly::add_trace(x = ~date, y = ~mean, line=list(color="#A997DF", dash="dash"),  name="Mean")%>%
               plotly::add_trace(x = ~date,  y= ~high80, type = 'scatter', mode = 'lines',
-                                line = list(color = 'transparent'))%>%
+                                fill = 'tonexty', fillcolor="#C6BEDF",
+                                line = list(color = 'transparent'), name="Upper bound")%>%
+              plotly::add_trace(x = ~date,  y= ~low80, type = 'scatter', mode = 'lines',
+                                fill = 'tonexty', fillcolor="#C6BEDF",
+                                line = list(color = 'transparent'), name="Lowe bound")%>%
+              plotly::add_trace(x = ~date, y = ~mean, line=list(color="#A997DF", dash="dash"),  name="Mean")%>%
               plotly::layout(showlegend = FALSE, 
+                             shapes = list(vline(vector_time[n])),
                              title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
                              xaxis = list(rangeslider = list(visible = T),
-                                          zerolinecolor = "#ffff",
+                                          zerolinecolor = '#ffff',
                                           zerolinewidth = 2,
-                                          gridcolor = "#ffff"),
-                             yaxis = list(zerolinecolor = "#ffff",
+                                          gridcolor = 'ffff',
+                                          title = input[["select_time_column"]]),
+                             yaxis = list(zerolinecolor = '#ffff',
                                           zerolinewidth = 2,
-                                          gridcolor = "#ffff"),
-                             plot_bgcolor="#e5ecf6", 
-                             margin = 0.1)
+                                          gridcolor = 'ffff',
+                                          title = input[["select_measurements_column"]]),
+                             plot_bgcolor='#e5ecf6')
             
         })  
       }
