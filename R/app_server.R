@@ -3,15 +3,16 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #' @import shiny shinydashboard maps forecast ggplot2 magrittr
 #' @importFrom shinyalert shinyalert
-#' @importFrom shinyjs onclick enable disable
+#' @importFrom shinyjs onclick enable disable disabled refresh
 #' @importFrom data.table as.data.table
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
 #' @importFrom forecast forecast auto.arima
-#' @importFrom leaflet renderLeaflet
+#' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom plotly renderPlotly plot_ly add_trace
+#' @importFrom stats ts na.omit
 #' 
 #' @noRd
 #' 
@@ -30,26 +31,7 @@ app_server <- function(input, output, session) {
   data_load <- reactiveVal(NA)
   
   shinyjs::onclick("homeclick", { # reset app
-    updateSelectInput(session, "select_example_data", NULL,
-                      choices = c("Please select the data..." = "no_data",
-                                  "covid-19 infection cases in Poland" = "covid_poland",
-                                  "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
-                      selected = "no_data")
-    updateSelectInput(session, "select_filetype", NULL,
-                      choices = c("Please select a type of file..." = "no_type", 
-                                  ".csv" = "csv",
-                                  ".txt" = "txt",
-                                  ".xlsx" = "xlsx"),
-                      selected = "no_type")
-    updateSelectInput(session, "select_separator", NULL,
-                      choices=c("Please select a separator..." = "no_sep", 
-                                'Comma'=',',
-                                'Semicolon'=';',
-                                'Tab'='\t',
-                                'Space'=' '),
-                      selected='no_sep')
-    shinyjs::disable("to_view_data_button1")
-    shinyjs::disable("to_visualize_data_button1")
+    shinyjs::refresh()
   })
   
   shinyjs::onclick("to_user_data_button", { # going to loading user data interface
@@ -58,6 +40,7 @@ app_server <- function(input, output, session) {
                      "user_data" = "start")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
     data_load("user_data")
+    data_example_name(NA)
   })
   
   shinyjs::onclick("to_example_data_button", { # going to loading example data interface
@@ -66,6 +49,7 @@ app_server <- function(input, output, session) {
                             "example_data" = "start")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
     data_load("example_data")
+    data_example_name(NA)
   })
   
   ### the loading user data interface
@@ -75,25 +59,7 @@ app_server <- function(input, output, session) {
                             "user_data" = "start",
                             "start" = "user_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
-    
-    # return all inputs and buttons to default state
-    updateSelectInput(session, "select_filetype", NULL,
-                      choices = c("Please select a type of file..." = "no_type", 
-                                  ".csv" = "csv",
-                                  ".txt" = "txt",
-                                  ".xlsx" = "xlsx"),
-                      selected = "no_type")
-    updateSelectInput(session, "select_separator", NULL,
-                choices=c("Please select a separator..." = "no_sep", 
-                          'Comma'=',',
-                          'Semicolon'=';',
-                          'Tab'='\t',
-                          'Space'=' '),
-                selected='no_sep')
-    shinyjs::disable("to_view_data_button1")
-    shinyjs::disable("to_visualize_data_button1")
-    
-    
+    shinyjs::refresh()
   })
   
   output[["select_file"]] <- renderUI({ # render select file
@@ -181,13 +147,7 @@ app_server <- function(input, output, session) {
                             "example_data" = "start",
                             "start" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
-    
-    # return select input to default state
-    updateSelectInput(session, "select_example_data", NULL,
-                      choices = c("Please select the data..." = "no_data",
-                                  "covid-19 infection cases in Poland" = "covid_poland",
-                                  "HIV cases and deaths" = "deaths_and_new_cases_hiv"),
-                      selected = "no_data")
+    shinyjs::refresh()
   })
   
   observeEvent(input[["select_example_data"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
@@ -229,6 +189,8 @@ app_server <- function(input, output, session) {
                                type = "success",
                                confirmButtonText = "OK",
                                confirmButtonCol = "#a6a6a6")
+        
+        output[["map"]] <- renderLeaflet(NULL)
         return(e[[name]])
       }else{
         return(NULL)
@@ -344,8 +306,9 @@ app_server <- function(input, output, session) {
         shinyjs::disable("to_view_data_button1")
         shinyjs::disable("to_visualize_data_button1")
       }
-        return(as.data.table(user_dataset))
-      }
+      output[["map"]] <- renderLeaflet(NULL)
+      return(as.data.table(user_dataset))
+    }
   })
   
   ### the view data in a table interface
@@ -390,20 +353,10 @@ app_server <- function(input, output, session) {
                               "user_data" = "visualization")
     }
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
-  
-    # return all inputs and buttons to default state
-    updateSelectInput(session, "select_time_column", 
-                      shiny::HTML("Please select column contains time data:"),
-                      choices = c("no column", colnames(dataset())),
-                      selected = "no column")
-    updateSelectInput(session, "select_geo_column", 
-                      shiny::HTML("Please select column contains geographic data:"),
-                      choices = c("no column", colnames(dataset())),
-                      selected = "no column")
-    updateSelectInput(session, "select_measurements_column", 
-                      shiny::HTML("Please select column contains measurements:"),
-                      choices = c("no column", colnames(dataset())),
-                      selected = "no column")
+    
+    leaflet::leafletProxy("map") %>% clearMarkers()
+    shinyjs::disable("to_prediction_button")
+    output[["prediction_plot"]] <- renderPlotly(NULL)
   })
   
   shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
@@ -416,25 +369,37 @@ app_server <- function(input, output, session) {
   output[["map_visualization"]] <- renderUI( # creating data visualization UI
     sidebarLayout(
       sidebarPanel(
-        fluidRow(column(12, align = "center", add_helper(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
-                                                          choices = c("World", "Poland"),
-                                                          selected = ifelse(data_example_name() == "covid_poland", "Poland", "World")), "Data_type"))),
-        fluidRow(column(12, align = "center", add_helper(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
-                                                          choices = c("no column", colnames(dataset())),
-                                                          selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column"))), "Geo_column"))),
-        fluidRow(column(12, align = "center", add_helper(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
-                                                          choices = c("no column", colnames(dataset())),
-                                                          selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column"))), "Time_column"))),
+        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                                                       choices = c("World", "Poland"),
+                                                                                       selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))), "Data_type"))),
+        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
+                                                                                       choices = c("no column", colnames(dataset())),
+                                                                                       selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))), "Geo_column"))),
+        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
+                                                                                       choices = c("no column", colnames(dataset())),
+                                                                                       selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))), "Time_column"))),
         fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
-                                                          choices = c("no column", colnames(dataset())),
-                                                          selected = "no column"), "Measurement_column"))),
+                                                                     choices = c("no column", colnames(dataset())),
+                                                                     selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
         width = 3),
       mainPanel(
-        fluidRow(column(3, align = "left", uiOutput("radiobuttons_time_slider")),
-                 column(9, align = "left", uiOutput("change_time_range"))),
+        fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
+                 column(8, align = "left", uiOutput("change_time_range"))),
         div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
         width = 9)
     )
+  )
+  
+  observe(
+    if(is.na(data_example_name())){
+      shinyjs::enable("select_data_type")
+      shinyjs::enable("select_geo_column")
+      shinyjs::enable("select_time_column")
+    }else{
+      shinyjs::disable("select_data_type")
+      shinyjs::disable("select_geo_column")
+      shinyjs::disable("select_time_column")
+    }
   )
   
   observeEvent(input[["select_geo_column"]], { # check selected column for geographic data
@@ -506,7 +471,7 @@ app_server <- function(input, output, session) {
   
   observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
     if(input[["select_measurements_column"]] != "no column"){
-      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer"){
+      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer" && all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
         # display error
         shinyalert::shinyalert("Invalid column type",
@@ -524,27 +489,34 @@ app_server <- function(input, output, session) {
     }
   })
   
-  output[["map"]] <- renderLeaflet({ # ploting map
-    validate(
-      need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
-           "No columns selected. Please select columns containing time data, geographic data and measurements.")
-    )
-    plot_map(dataset(), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
-  })
-  
-  output[["radiobuttons_time_slider"]] <- renderUI({ # creating radio buttons for choosing time options for visualization
-    if(input[["select_time_column"]] != "no column"){
-      radioButtons("check_for_time_slider", "Show map for:", 
-                   choices = c("A specific time value" = "one_value", 
-                               "Time period (sum of measurement)" = "period"), 
-                   selected = "one_value")
+  observe(
+    if(!is.null(input[["slider_time_range"]]) && !is.infinite(input[["slider_time_range"]])){
+      output[["map"]] <- renderLeaflet({ # ploting map
+        validate(
+          need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
+               "No columns selected. Please select columns containing time data, geographic data and measurements.")
+        )
+        plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
+      })
     }
+  )
+  
+  observeEvent(input[["select_time_column"]], {
+    output[["radiobuttons_time_slider"]] <- renderUI({ # creating radio buttons for choosing time options for visualization
+      if(input[["select_time_column"]] != "no column"){
+        radioButtons("check_for_time_slider", "Show map for:", 
+                     choices = c("A specific time value" = "one_value", 
+                                 "Time period (sum of measurement)" = "period"), 
+                     selected = "one_value")
+      }
+    })
   })
   
   observeEvent(input[["check_for_time_slider"]], { # creating slider for choosing a time range for visualization
     output[["change_time_range"]] <- renderUI({
       if(input[["select_time_column"]] != "no column"){
-        vector_time <- dataset()[[input[["select_time_column"]]]]
+        vector_time <- isolate(dataset())[[input[["select_time_column"]]]]
+        if(is.null(vector_time)) return(NULL)
         if(unique(nchar(as.character(vector_time))) == 4){
           if(input[["check_for_time_slider"]] == "one_value"){
             val <- max(vector_time)
@@ -589,93 +561,105 @@ app_server <- function(input, output, session) {
   
   prediction_area <- reactiveValues(data = NULL)
   
-  observe(
+  observeEvent(input[["map_shape_click"]], {
     if(!is.null(input[["map_shape_click"]]$id)){
-      shinyjs::enable("to_prediction_button")
+      
+      # update map visualization
       zoom_lvl <- ifelse(input[["select_data_type"]] == "Poland", 8, 3)
+      icon <- leaflet::awesomeIcons(icon = "circle", library = "fa", markerColor = "white", iconColor = "#efefef")
       leaflet::leafletProxy("map") %>%
-        leaflet::setView(lng = input[["map_shape_click"]]$lng, lat = input[["map_shape_click"]]$lat, zoom = zoom_lvl)
-      area_code=sub("\\;.*", "", input[["map_shape_click"]]$id)
-      setkeyv(dataset(), input[["select_geo_column"]])
+        leaflet::clearMarkers() %>% 
+        leaflet::setView(lng = input[["map_shape_click"]]$lng, lat = input[["map_shape_click"]]$lat, zoom = zoom_lvl) %>% 
+        leaflet::addAwesomeMarkers(input[["map_shape_click"]]$lng, input[["map_shape_click"]]$lat, icon = icon, label = paste0("You have chosen: ", sub(".*\\;","", input[["map_shape_click"]]$id)))
+      
+      # create dataset for predictions
+      area_code <- sub("\\;.*", "", input[["map_shape_click"]]$id)
+      setkeyv(isolate(dataset()), input[["select_geo_column"]])
       #prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
       if(input[["select_data_type"]] == "Poland"){
          area_code=paste0("t", area_code)
       }
-       prediction_area$data <- dataset()[dataset()[[input[["select_geo_column"]]]]==area_code, c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
-
-
+      prediction_area$data <- isolate(dataset())[isolate(dataset())[[input[["select_geo_column"]]]]==area_code, c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
+      prediction_area$data <- stats::na.omit(prediction_area$data)
+      
+      if(nrow(prediction_area$data) != 0){
+        shinyjs::enable("to_prediction_button")
+        output[["prediction_plot"]] <- renderPlotly({
+            # number of observations
+            n<-nrow(prediction_area$data)
+            
+            # number of periods to predict
+            h_to_pred<-3
+            
+            vector_time <- prediction_area$data[[input[["select_time_column"]]]]
+            vector_stat <-prediction_area$data[[input[["select_measurements_column"]]]]
+            
+            # create time series 
+            if(unique(nchar(as.character(vector_time))) == 4){
+              
+              # RRRR format
+              series <- ts(vector_stat, start=vector_time[1], end=vector_time[n])
+            }else{
+              
+              # RRRR-MM-DD or RRRR.MM.DD format
+              format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
+              vector_time<-as.Date(vector_time)
+              series <- ts(vector_stat, start=vector_time[1], end=vector_time[n]+1)
+            }
+            model <- forecast::auto.arima(series,
+                                          stationary = FALSE,
+                                          seasonal=TRUE)
+            forecast_output <- forecast::forecast(series, h=h_to_pred, model=model)
+            
+            ## check datatype in arima and adjust forecast
+            if(class(vector_time)=="integer"){
+              
+              forecast_output$mean<-as.integer(forecast_output$mean)
+              forecast_output$upper<-as.integer(forecast_output$upper)
+              forecast_output$lower<-as.integer(forecast_output$lower)
+            }else{
+              d<-2
+              forecast_output$mean<-round(forecast_output$mean, d)
+              forecast_output$upper<-round(forecast_output$upper, d)
+              forecast_output$lower<-round(forecast_output$lower, d)
+            }
+            
+            area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
+            dates<-c(vector_time, vector_time[n]+1:h_to_pred)
+            values<-c(forecast_output$x, forecast_output$mean)
+            types<-c(rep("observation", n), rep("prediction", h_to_pred))
+            high80<-c(rep(NA, n), forecast_output$upper[1:h_to_pred])
+            low80<-c(rep(NA, n), forecast_output$lower[1:h_to_pred])
+            
+            df<-data.frame(date=dates, value=values, type=types, high80=high80, low80=low80)
+            plotly::plot_ly(df, 
+                            type = "scatter", 
+                            mode = "lines", 
+                            colors=c("#A1CDBC", "#A997DF"))%>%
+              plotly::add_trace(x = ~date, y = ~value, color=~type, name="Mean")%>%
+              plotly::add_trace(x = ~date,  y= ~high80, type = 'scatter', mode = 'lines',
+                                line = list(color = 'transparent'))%>%
+              plotly::layout(showlegend = FALSE, 
+                             title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
+                             xaxis = list(rangeslider = list(visible = T),
+                                          zerolinecolor = "#ffff",
+                                          zerolinewidth = 2,
+                                          gridcolor = "#ffff"),
+                             yaxis = list(zerolinecolor = "#ffff",
+                                          zerolinewidth = 2,
+                                          gridcolor = "#ffff"),
+                             plot_bgcolor="#e5ecf6", 
+                             margin = 0.1)
+            
+        })  
+      }
     }else{
       shinyjs::disable("to_prediction_button")
     }
-  )
   
-  output[["prediction_plot"]] <- renderPlotly({
-    # number of observations
-    n<-nrow(prediction_area$data)
-    
-    # number of periods to predict
-    h_to_pred<-3
-    
-    vector_time <- prediction_area$data[[input[["select_time_column"]]]]
-    vector_stat <-prediction_area$data[[input[["select_measurements_column"]]]]
-    
-    # create time series 
-    if(unique(nchar(as.character(vector_time))) == 4){
-      
-      # RRRR format
-      series <- ts(vector_stat, start=vector_time[1], end=vector_time[n])
-    }else{
-      
-      # RRRR-MM-DD or RRRR.MM.DD format
-      format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-      vector_time<-as.Date(vector_time)
-      series <- ts(vector_stat, start=vector_time[1], end=vector_time[n]+1)
-    }
-    browser()
-    model <- forecast::auto.arima(series,
-                                  stationary = FALSE,
-                                  seasonal=TRUE)
-    forecast_output <- forecast::forecast(series, h=h_to_pred, model=model)
-    
-    ## check datatype in arima and adjust forecast
-    if(class(vector_time)=="integer"){
-      
-      forecast_output$mean<-as.integer(forecast_output$mean)
-      forecast_output$upper<-as.integer(forecast_output$upper)
-      forecast_output$lower<-as.integer(forecast_output$lower)
-    }else{
-      d<-decimal_places(vector_stat)
-      forecast_output$mean<-round(forecast_output$mean, d)
-      forecast_output$upper<-round(forecast_output$upper, d)
-      forecast_output$lower<-round(forecast_output$lower, d)
-    }
-    
-    area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
-    dates<-c(vector_time, vector_time[n]+1:h_to_pred)
-    values<-c(forecast_output$x, forecast_output$mean)
-    types<-c(rep("observation", n), rep("prediction", h_to_pred))
-    high80<-c(rep(NA, n), forecast_output$upper[1:h_to_pred])
-    low80<-c(rep(NA, n), forecast_output$lower[1:h_to_pred])
-    df<-data.frame(date=dates, value=values, type=types, high80=high80, low80=low80)
-
-    plotly::plot_ly(df, 
-            type = "scatter", 
-            mode = "lines", 
-            colors=c("#A1CDBC", "#A997DF"))%>%
-      plotly::add_trace(x = ~date, y = ~value, color=~type, name="Mean")%>%
-      plotly::add_trace(x = ~date,  y= ~high80, type = 'scatter', mode = 'lines',
-                        line = list(color = 'transparent'))%>%
-      plotly::layout(showlegend = FALSE, 
-             title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
-             xaxis = list(rangeslider = list(visible = T),
-                          zerolinecolor = "#ffff",
-                          zerolinewidth = 2,
-                          gridcolor = "#ffff"),
-             yaxis = list(zerolinecolor = "#ffff",
-                          zerolinewidth = 2,
-                          gridcolor = "#ffff"),
-             plot_bgcolor="#e5ecf6", 
-             margin = 0.1)
+  
   }) 
+
+
     
 }

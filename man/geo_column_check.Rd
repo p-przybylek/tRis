@@ -12,7 +12,7 @@ geo_column_check(vector_geo, data_type)
 \item{data_type}{\code{character} type of geographical area - "Poland" or "World"}
 }
 \value{
-logical value
+logical value, TRUE when the data format is invalid
 }
 \description{
 Validating a given geographic column.

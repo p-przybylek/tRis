@@ -194,10 +194,12 @@
 border-top: 1px solid #a1cdbc !important;
 border-bottom: 1px solid #a1cdbc !important;
 background: #a1cdbc !important;
+color: #000000 !important;
 } 
 
 .irs--shiny .irs-from, .irs--shiny .irs-to, .irs--shiny .irs-single {
 background-color: #a1cdbc !important;
+color: #000000 !important;
 }
 
 input[type="radio"] {
@@ -211,10 +213,22 @@ input[type="radio"] {
   margin-top: 1px;
   background-clip: content-box;
   border: 1px solid #000000;
-  background-color: #a1cdbc;
+  background-color: #ffffff;
   border-radius: 50%;
+}
+
+input[type="radio"]:checked {
+  background-color: #a1cdbc;
 }
 
 .modal-footer {
   text-align: center;
+}
+
+.fa, .fas {
+  font-weight: 900 !important;
+}
+
+.fa, .far, .fas {
+  font-family: "Font Awesome 5 Free" !important;
 }

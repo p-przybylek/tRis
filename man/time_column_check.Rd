@@ -10,7 +10,7 @@ time_column_check(vector_time)
 \item{vector_time}{\code{character} selected column for validaling}
 }
 \value{
-logical value
+logical value, TRUE when the data format is invalid
 }
 \description{
 Validating a given date/time column.
