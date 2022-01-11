@@ -120,9 +120,6 @@ app_server <- function(input, output, session) {
       }
     })
   
-  # observe({
-  #   shinyjs::toggleState("select_file", (input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" ))
-  # })
 
   observe({ # when filetype and separator aren chosen, file select is enabled
     if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]== "xlsx"){
@@ -145,13 +142,7 @@ app_server <- function(input, output, session) {
   
   ### navigating
   
-  # observe({
-  #   shinyjs::toggleState("to_view_data_button1", !is.null(dataset()))
-  # })
-  # 
-  # observe({
-  #   shinyjs::toggleState("to_visualize_data_button1", !is.null(dataset()))
-  # })
+
 
   
   
