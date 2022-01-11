@@ -189,6 +189,8 @@ app_server <- function(input, output, session) {
                                type = "success",
                                confirmButtonText = "OK",
                                confirmButtonCol = "#a6a6a6")
+        
+        output[["map"]] <- renderLeaflet(NULL)
         return(e[[name]])
       }else{
         return(NULL)
@@ -304,6 +306,7 @@ app_server <- function(input, output, session) {
         shinyjs::disable("to_view_data_button1")
         shinyjs::disable("to_visualize_data_button1")
       }
+      output[["map"]] <- renderLeaflet(NULL)
       return(as.data.table(user_dataset))
     }
   })
@@ -354,7 +357,6 @@ app_server <- function(input, output, session) {
     leaflet::leafletProxy("map") %>% clearMarkers()
     shinyjs::disable("to_prediction_button")
     output[["prediction_plot"]] <- renderPlotly(NULL)
-    output[["map"]] <- renderLeaflet(NULL)
   })
   
   shinyjs::onclick("to_prediction_button", { # going to data visualization and prediction interface
