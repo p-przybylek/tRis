@@ -530,7 +530,7 @@ app_server <- function(input, output, session) {
   
   observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
     if(input[["select_measurements_column"]] != "no column"){
-      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer" && all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
+      if((class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer") || all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
         # display error
         shinyalert::shinyalert("Invalid column type",
