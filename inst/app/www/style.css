@@ -232,3 +232,7 @@ input[type="radio"]:checked {
 .fa, .far, .fas {
   font-family: "Font Awesome 5 Free" !important;
 }
+
+.modal-content {
+  border-radius: 10px !important;
+}

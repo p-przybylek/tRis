@@ -1,6 +1,6 @@
-### helpfiles/Table_with_data.md - Under Development
+### <b> Table with loaded data </b>
 
 ***
 
-This helpfile is under not finished yet
+This table contains all the attributes and the last 20 rows of the loaded dataset.
 

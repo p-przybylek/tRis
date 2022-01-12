@@ -8,11 +8,9 @@
 #' @importFrom DT renderDataTable
 #' @importFrom utils tail read.table read.csv
 #' @importFrom openxlsx read.xlsx
-#' @importFrom forecast forecast auto.arima
 #' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
-#' @importFrom plotly renderPlotly plot_ly add_trace
-#' @importFrom stats ts na.omit
+#' @importFrom stats na.omit
 #' 
 #' @noRd
 #' 
@@ -83,6 +81,7 @@ app_server <- function(input, output, session) {
     
 
   })
+
   
   observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
     output[["select_file"]] <- renderUI({
@@ -111,6 +110,7 @@ app_server <- function(input, output, session) {
   # observe({
   #   shinyjs::toggleState("select_separator", (input[["select_filetype"]] != 'xlsx'))
   # })
+
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
@@ -372,7 +372,7 @@ app_server <- function(input, output, session) {
   })
   
   output[["data_table"]] <- DT::renderDataTable({
-    utils::tail(dataset(), 10)
+    utils::tail(dataset(), 20)
   },
   options = list(scrollX = TRUE,
                  deferRender = TRUE,
@@ -630,92 +630,14 @@ app_server <- function(input, output, session) {
       if(nrow(prediction_area$data) != 0){
         shinyjs::enable("to_prediction_button")
         output[["prediction_plot"]] <- renderPlotly({
-            # number of observations
+            
             n<-nrow(prediction_area$data)
-            
-            # number of periods to predict
-            h_to_pred<-3
-            
             vector_time <- prediction_area$data[[input[["select_time_column"]]]]
             vector_stat <-prediction_area$data[[input[["select_measurements_column"]]]]
-            
-            # create time series 
-            if(unique(nchar(as.character(vector_time))) == 4){
-              
-              # RRRR format
-              series <- ts(vector_stat, start=vector_time[1], end=vector_time[n])
-            }else{
-              
-              # RRRR-MM-DD or RRRR.MM.DD format
-              format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-              vector_time<-as.Date(vector_time)
-              series <- ts(vector_stat, start=vector_time[1], end=vector_time[n]+1)
-            }
-            model <- forecast::auto.arima(series,
-                                          stationary = FALSE,
-                                          seasonal=TRUE)
-            forecast_output <- forecast::forecast(series, h=h_to_pred, model=model)
-            
-            ## check datatype in arima and adjust forecast
-            if(class(vector_time)=="integer"){
-              
-              forecast_output$mean<-as.integer(forecast_output$mean)
-              forecast_output$upper<-as.integer(forecast_output$upper)
-              forecast_output$lower<-as.integer(forecast_output$lower)
-            }else{
-              d<-2
-              forecast_output$mean<-round(forecast_output$mean, d)
-              forecast_output$upper<-round(forecast_output$upper, d)
-              forecast_output$lower<-round(forecast_output$lower, d)
-            }
-            
+            xaxis<-input[["select_time_column"]]
+            yaxis<-input[["select_measurements_column"]]
             area_name<-sub(".*\\;","", input[["map_shape_click"]]$id)
-            dates<-c(vector_time, vector_time[n]+1:h_to_pred)
-            observations<-c(forecast_output$x, rep(NA, 3))
-            mean<-c(rep(NA, n-1), forecast_output$x[n], forecast_output$mean[1:h_to_pred])
-            high80<-c(rep(NA, n-1),forecast_output$x[n],  forecast_output$upper[1:h_to_pred])
-            low80<-c(rep(NA, n-1),forecast_output$x[n], forecast_output$lower[1:h_to_pred])
-            
-            df<-data.frame(date=dates, observations=observations, mean=mean, high80=high80, low80=low80)
-            
-            vline <- function(x = 0) {
-              list(
-                type = "line",
-                y0 = 0,
-                y1 = 1,
-                yref = "paper",
-                x0 = x,
-                x1 = x,
-                line = list(color = "#B9C3D1")
-              )
-            }
-            
-            plotly::plot_ly(df, 
-                            type = "scatter", 
-                            mode = "lines", 
-                            colors=c("#A1CDBC", "#A997DF"))%>%
-              plotly::add_trace(x = ~date, y = ~observations, line=list(color="#A1CDBC"),  name="Observations")%>%
-              plotly::add_trace(x = ~date, y = ~mean, line=list(color="#A997DF", dash="dash"),  name="Mean")%>%
-              plotly::add_trace(x = ~date,  y= ~high80, type = 'scatter', mode = 'lines',
-                                fill = 'tonexty', fillcolor="#C6BEDF",
-                                line = list(color = 'transparent'), name="Upper bound")%>%
-              plotly::add_trace(x = ~date,  y= ~low80, type = 'scatter', mode = 'lines',
-                                fill = 'tonexty', fillcolor="#C6BEDF",
-                                line = list(color = 'transparent'), name="Lowe bound")%>%
-              plotly::add_trace(x = ~date, y = ~mean, line=list(color="#A997DF", dash="dash"),  name="Mean")%>%
-              plotly::layout(showlegend = FALSE, 
-                             shapes = list(vline(vector_time[n])),
-                             title=paste0("Time series for ",area_name, ", prediction for 3 periods"),
-                             xaxis = list(rangeslider = list(visible = T),
-                                          zerolinecolor = '#ffff',
-                                          zerolinewidth = 2,
-                                          gridcolor = 'ffff',
-                                          title = input[["select_time_column"]]),
-                             yaxis = list(zerolinecolor = '#ffff',
-                                          zerolinewidth = 2,
-                                          gridcolor = 'ffff',
-                                          title = input[["select_measurements_column"]]),
-                             plot_bgcolor='#e5ecf6')
+            time_series_visualization(vector_time, vector_stat, area_name, n, h_to_pred=3, xaxis, yaxis)
             
         })  
       }
