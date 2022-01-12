@@ -62,7 +62,7 @@ app_ui <- function(request) {
                                                                                                      'Space'=' '),
                                                                                            selected='no_sep'))),
                                                               fluidRow(column(12, align = "center", div(id = "box-select-file", add_helper(uiOutput('select_file'), "Select_file")))),
-                                                              fluidRow(column(12, align = "center", helpText('The maximum filesize is 1GB'))),
+                                                              fluidRow(column(12, align = "center", helpText('The maximum filesize is 100MB'))),
                                                               br(),
                                                               fluidRow(column(4, div(id = "box-button-right1", actionButton("return_to_start_button1", shiny::HTML("return to <br/> previous page"), class = "return-button"))),
                                                                        column(4, align = "center", div(id = "box-button-center1", add_helper(shinyjs::disabled(actionButton("to_view_data_button1", shiny::HTML("data <br/> preview"), class = "view-and-vis-button")), "View_data"))),

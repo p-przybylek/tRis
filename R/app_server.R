@@ -11,6 +11,7 @@
 #' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom stats na.omit
+#' @importFrom stringr str_conv
 #' 
 #' @noRd
 #' 
@@ -18,7 +19,7 @@ app_server <- function(input, output, session) {
   
   ### option to increase input limit to 1GB
   
-  options(shiny.maxRequestSize = 1024*1024^2)
+  options(shiny.maxRequestSize = 103*1024^2)
   
   ### add helpfiles to app
   
@@ -461,6 +462,7 @@ app_server <- function(input, output, session) {
   observeEvent(input[["select_geo_column"]], { # check selected column for geographic data
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
+      vector_geo <- suppressWarnings(stringr::str_conv(vector_geo, "UTF-8"))
       if(input[["select_data_type"]] == "Poland"){
         if(any(unique(nchar(vector_geo)) %in% c(1,3))){
           vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
@@ -506,6 +508,7 @@ app_server <- function(input, output, session) {
   observeEvent(input[["select_time_column"]], { # check selected column for time data
     if(input[["select_time_column"]] != "no column"){
       vector_time <- as.character(dataset()[[input[["select_time_column"]]]])
+      vector_time <- suppressWarnings(stringr::str_conv(vector_time, "UTF-8"))
       val <- time_column_check(vector_time)
       if(val){
         
@@ -550,7 +553,7 @@ app_server <- function(input, output, session) {
       output[["map"]] <- renderLeaflet({ # ploting map
         validate(
           need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
-               "No columns selected. Please select columns containing time data, geographic data and measurements.")
+               "No all columns selected. Please select columns containing time data, geographic data and measurements.")
         )
         plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
       })
