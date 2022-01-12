@@ -82,7 +82,6 @@ app_server <- function(input, output, session) {
 
   })
 
-  
   observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
     output[["select_file"]] <- renderUI({
 
@@ -412,38 +411,50 @@ app_server <- function(input, output, session) {
   })
   
   output[["map_visualization"]] <- renderUI( # creating data visualization UI
-    sidebarLayout(
-      sidebarPanel(
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
-                                                                                       choices = c("World", "Poland"),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))), "Data_type"))),
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
-                                                                                       choices = c("no column", colnames(dataset())),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))), "Geo_column"))),
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
-                                                                                       choices = c("no column", colnames(dataset())),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))), "Time_column"))),
-        fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
-                                                                     choices = c("no column", colnames(dataset())),
-                                                                     selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
-        width = 3),
-      mainPanel(
-        fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
-                 column(8, align = "left", uiOutput("change_time_range"))),
-        div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
-        width = 9)
-    )
-  )
-  
-  observe(
     if(is.na(data_example_name())){
-      shinyjs::enable("select_data_type")
-      shinyjs::enable("select_geo_column")
-      shinyjs::enable("select_time_column")
+      sidebarLayout(
+        sidebarPanel(
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                                                         choices = c("World", "Poland"),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "Poland", "World")), "Data_type"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column"))), "Geo_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column"))), "Time_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
+                                                                       choices = c("no column", colnames(dataset())),
+                                                                       selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
+          width = 3),
+        mainPanel(
+          fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
+                   column(8, align = "left", uiOutput("change_time_range"))),
+          div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
+          width = 9)
+      )
     }else{
-      shinyjs::disable("select_data_type")
-      shinyjs::disable("select_geo_column")
-      shinyjs::disable("select_time_column")
+      sidebarLayout(
+        sidebarPanel(
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                                                         choices = c("World", "Poland"),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))), "Data_type"))),
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))), "Geo_column"))),
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))), "Time_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
+                                                                       choices = c("no column", colnames(dataset())),
+                                                                       selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
+          width = 3),
+        mainPanel(
+          fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
+                   column(8, align = "left", uiOutput("change_time_range"))),
+          div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
+          width = 9)
+      )
     }
   )
   
