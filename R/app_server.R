@@ -99,18 +99,9 @@ app_server <- function(input, output, session) {
                   buttonLabel = "Upload",
                   placeholder = "Please choose a file...")
       )
-      
-    
-      
     })
     
   })
-  
-  
-  # observe({
-  #   shinyjs::toggleState("select_separator", (input[["select_filetype"]] != 'xlsx'))
-  # })
-
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
@@ -140,20 +131,8 @@ app_server <- function(input, output, session) {
     }
   })
   
-  ### navigating
-  
-
-
-  
-  
-  observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
-    if(!is.null(dataset())){
-      shinyjs::enable("to_view_data_button1")
-      shinyjs::enable("to_visualize_data_button1")
-    }else{
-      shinyjs::disable("to_view_data_button1")
-      shinyjs::disable("to_visualize_data_button1")
-    }
+  observeEvent(input[["select_file"]], {
+    dataset()
   })
   
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
@@ -203,8 +182,6 @@ app_server <- function(input, output, session) {
     shinyjs::toggleState("to_visualize_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
   })
   
-
-  
   shinyjs::onclick("to_view_data_button2", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "example_data" = "table_view",
@@ -218,7 +195,6 @@ app_server <- function(input, output, session) {
                             "visualization" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
-
   
   ### loading a dataset
 
@@ -459,6 +435,8 @@ app_server <- function(input, output, session) {
     }
   )
   
+  proper_columns <- reactiveValues(geo = NULL, time = NULL, measurements = NULL)
+  
   observeEvent(input[["select_geo_column"]], { # check selected column for geographic data
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
@@ -471,6 +449,7 @@ app_server <- function(input, output, session) {
         val <- geo_column_check(vector_geo, "Poland")
         if(val){
           
+          proper_columns$geo <- NULL
           # display error
           shinyalert::shinyalert("Invalid column type",
                                  "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the TERYT format (tXX and tXXXX or XX and XXXX) or change type od data for 'World'.",
@@ -483,11 +462,14 @@ app_server <- function(input, output, session) {
                             shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
+        }else{
+          proper_columns$geo <- input[["select_geo_column"]]
         }
       }else if(input[["select_data_type"]] == "World"){ # properly format of a column is ISO 3166-1
         val <- geo_column_check(vector_geo, "World")
         if(val){
           
+          proper_columns$geo <- NULL
           # display error
           shinyalert::shinyalert("Invalid column type",
                                  "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the ISO 3166-1 format or change type od data for 'Poland'.",
@@ -500,8 +482,12 @@ app_server <- function(input, output, session) {
                             shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
+        }else{
+          proper_columns$geo <- input[["select_geo_column"]]
         }
       }
+    }else{
+      proper_columns$geo <- NULL
     }
   })
   
@@ -512,6 +498,7 @@ app_server <- function(input, output, session) {
       val <- time_column_check(vector_time)
       if(val){
         
+        proper_columns$time <- NULL
         # display error
         shinyalert::shinyalert("Invalid column type",
                                "The selected column for dates contains an invalid format. Please select a column that contains the date format consistent with the one adopted by the application: YYYY or YYYY-MM-DD or YYYY.MM.DD.",
@@ -524,7 +511,11 @@ app_server <- function(input, output, session) {
                           shiny::HTML("Please select column contains time data:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
+      }else{
+        proper_columns$time <- input[["select_time_column"]]
       }
+    }else{
+      proper_columns$time <- NULL
     }
   })
   
@@ -532,6 +523,7 @@ app_server <- function(input, output, session) {
     if(input[["select_measurements_column"]] != "no column"){
       if((class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer") || all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
+        proper_columns$measurements <- NULL
         # display error
         shinyalert::shinyalert("Invalid column type",
                                "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
@@ -544,7 +536,11 @@ app_server <- function(input, output, session) {
                           shiny::HTML("Please select column contains measurements:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
+      }else{
+        proper_columns$measurements <- input[["select_measurements_column"]]
       } 
+    }else{
+      proper_columns$measurements <- NULL
     }
   })
   
@@ -555,7 +551,9 @@ app_server <- function(input, output, session) {
           need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
                "No all columns selected. Please select columns containing time data, geographic data and measurements.")
         )
-        plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
+        if(!is.null(proper_columns$geo) && !is.null(proper_columns$time) && !is.null(proper_columns$measurements)){
+          plot_map(isolate(dataset()), input[["select_data_type"]], proper_columns$geo, proper_columns$time, proper_columns$measurements, input[["slider_time_range"]]) 
+        }
       })
     }
   )
