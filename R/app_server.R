@@ -212,6 +212,8 @@ app_server <- function(input, output, session) {
                                confirmButtonCol = "#a6a6a6")
         
         output[["map"]] <- renderLeaflet(NULL)
+        output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+        output[["change_time_range"]] <-renderUI(NULL)
         return(e[[name]])
       }else{
         return(NULL)
@@ -328,6 +330,8 @@ app_server <- function(input, output, session) {
         shinyjs::disable("to_visualize_data_button1")
       }
       output[["map"]] <- renderLeaflet(NULL)
+      output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+      output[["change_time_range"]] <-renderUI(NULL)
       return(as.data.table(user_dataset))
     }
   })
