@@ -11,6 +11,7 @@
 #' @importFrom leaflet renderLeaflet leafletProxy addAwesomeMarkers setView awesomeIcons clearMarkers
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom stats na.omit
+#' @importFrom stringr str_conv
 #' 
 #' @noRd
 #' 
@@ -18,7 +19,7 @@ app_server <- function(input, output, session) {
   
   ### option to increase input limit to 1GB
   
-  options(shiny.maxRequestSize = 1024*1024^2)
+  options(shiny.maxRequestSize = 103*1024^2)
   
   ### add helpfiles to app
   
@@ -82,7 +83,6 @@ app_server <- function(input, output, session) {
 
   })
 
-  
   observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
     output[["select_file"]] <- renderUI({
 
@@ -100,13 +100,9 @@ app_server <- function(input, output, session) {
                   buttonLabel = "Upload",
                   placeholder = "Please choose a file...")
       )
-      
-    
-      
     })
     
   })
-
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
       if(input[["select_filetype"]]=='xlsx'){
@@ -137,6 +133,7 @@ app_server <- function(input, output, session) {
     }
   })
   
+
   ### navigating
 
   
@@ -148,7 +145,11 @@ app_server <- function(input, output, session) {
       shinyjs::disable("to_view_data_button1")
       shinyjs::disable("to_visualize_data_button1")
     }
-  })
+
+  observeEvent(input[["select_file"]], {
+    dataset()
+  }
+
   
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
@@ -197,8 +198,6 @@ app_server <- function(input, output, session) {
     shinyjs::toggleState("to_visualize_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
   })
   
-
-  
   shinyjs::onclick("to_view_data_button2", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "example_data" = "table_view",
@@ -212,7 +211,6 @@ app_server <- function(input, output, session) {
                             "visualization" = "example_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
-
   
   ### loading a dataset
 
@@ -230,6 +228,8 @@ app_server <- function(input, output, session) {
                                confirmButtonCol = "#a6a6a6")
         
         output[["map"]] <- renderLeaflet(NULL)
+        output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+        output[["change_time_range"]] <-renderUI(NULL)
         return(e[[name]])
       }else{
         return(NULL)
@@ -346,6 +346,8 @@ app_server <- function(input, output, session) {
         shinyjs::disable("to_visualize_data_button1")
       }
       output[["map"]] <- renderLeaflet(NULL)
+      output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+      output[["change_time_range"]] <-renderUI(NULL)
       return(as.data.table(user_dataset))
     }
   })
@@ -406,44 +408,59 @@ app_server <- function(input, output, session) {
   })
   
   output[["map_visualization"]] <- renderUI( # creating data visualization UI
-    sidebarLayout(
-      sidebarPanel(
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
-                                                                                       choices = c("World", "Poland"),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))), "Data_type"))),
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
-                                                                                       choices = c("no column", colnames(dataset())),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))), "Geo_column"))),
-        fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
-                                                                                       choices = c("no column", colnames(dataset())),
-                                                                                       selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))), "Time_column"))),
-        fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
-                                                                     choices = c("no column", colnames(dataset())),
-                                                                     selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
-        width = 3),
-      mainPanel(
-        fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
-                 column(8, align = "left", uiOutput("change_time_range"))),
-        div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
-        width = 9)
-    )
-  )
-  
-  observe(
     if(is.na(data_example_name())){
-      shinyjs::enable("select_data_type")
-      shinyjs::enable("select_geo_column")
-      shinyjs::enable("select_time_column")
+      sidebarLayout(
+        sidebarPanel(
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                                                         choices = c("World", "Poland"),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "Poland", "World")), "Data_type"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column"))), "Geo_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column"))), "Time_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
+                                                                       choices = c("no column", colnames(dataset())),
+                                                                       selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
+          width = 3),
+        mainPanel(
+          fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
+                   column(8, align = "left", uiOutput("change_time_range"))),
+          div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
+          width = 9)
+      )
     }else{
-      shinyjs::disable("select_data_type")
-      shinyjs::disable("select_geo_column")
-      shinyjs::disable("select_time_column")
+      sidebarLayout(
+        sidebarPanel(
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_data_type", shiny::HTML("Please choose what your data is about:"),
+                                                                                         choices = c("World", "Poland"),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "Poland", "World"))), "Data_type"))),
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_geo_column", shiny::HTML("Please select column contains geographic data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "territory", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Code", "no column")))), "Geo_column"))),
+          fluidRow(column(12, align = "center", add_helper(shinyjs::disabled(selectInput("select_time_column", shiny::HTML("Please select column contains time data:"),
+                                                                                         choices = c("no column", colnames(dataset())),
+                                                                                         selected = ifelse(data_example_name() == "covid_poland", "date", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Year", "no column")))), "Time_column"))),
+          fluidRow(column(12, align = "center", add_helper(selectInput("select_measurements_column", shiny::HTML("Please select column contains measurements:"),
+                                                                       choices = c("no column", colnames(dataset())),
+                                                                       selected = ifelse(data_example_name() == "covid_poland", "cases", ifelse(data_example_name() == "deaths_and_new_cases_hiv", "Deaths", "no column"))), "Measurement_column"))),
+          width = 3),
+        mainPanel(
+          fluidRow(column(4, align = "left", uiOutput("radiobuttons_time_slider")),
+                   column(8, align = "left", uiOutput("change_time_range"))),
+          div(id="box-mapplot", add_helper(shinycssloaders::withSpinner(leafletOutput("map"), color = "#efefef"), "Map_plot")),
+          width = 9)
+      )
     }
   )
+  
+  proper_columns <- reactiveValues(geo = NULL, time = NULL, measurements = NULL)
   
   observeEvent(input[["select_geo_column"]], { # check selected column for geographic data
     if(input[["select_geo_column"]] != "no column"){
       vector_geo <- as.character(dataset()[[input[["select_geo_column"]]]])
+      vector_geo <- suppressWarnings(stringr::str_conv(vector_geo, "UTF-8"))
       if(input[["select_data_type"]] == "Poland"){
         if(any(unique(nchar(vector_geo)) %in% c(1,3))){
           vector_geo <- ifelse(nchar(vector_geo) == 1, paste0("0", vector_geo), vector_geo)
@@ -452,6 +469,7 @@ app_server <- function(input, output, session) {
         val <- geo_column_check(vector_geo, "Poland")
         if(val){
           
+          proper_columns$geo <- NULL
           # display error
           shinyalert::shinyalert("Invalid column type",
                                  "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the TERYT format (tXX and tXXXX or XX and XXXX) or change type od data for 'World'.",
@@ -464,11 +482,14 @@ app_server <- function(input, output, session) {
                             shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
+        }else{
+          proper_columns$geo <- input[["select_geo_column"]]
         }
       }else if(input[["select_data_type"]] == "World"){ # properly format of a column is ISO 3166-1
         val <- geo_column_check(vector_geo, "World")
         if(val){
           
+          proper_columns$geo <- NULL
           # display error
           shinyalert::shinyalert("Invalid column type",
                                  "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the ISO 3166-1 format or change type od data for 'Poland'.",
@@ -481,17 +502,23 @@ app_server <- function(input, output, session) {
                             shiny::HTML("Please select column contains geographic data:"),
                             choices = c("no column", colnames(dataset())),
                             selected = "no column")
+        }else{
+          proper_columns$geo <- input[["select_geo_column"]]
         }
       }
+    }else{
+      proper_columns$geo <- NULL
     }
   })
   
   observeEvent(input[["select_time_column"]], { # check selected column for time data
     if(input[["select_time_column"]] != "no column"){
       vector_time <- as.character(dataset()[[input[["select_time_column"]]]])
+      vector_time <- suppressWarnings(stringr::str_conv(vector_time, "UTF-8"))
       val <- time_column_check(vector_time)
       if(val){
         
+        proper_columns$time <- NULL
         # display error
         shinyalert::shinyalert("Invalid column type",
                                "The selected column for dates contains an invalid format. Please select a column that contains the date format consistent with the one adopted by the application: YYYY or YYYY-MM-DD or YYYY.MM.DD.",
@@ -504,14 +531,19 @@ app_server <- function(input, output, session) {
                           shiny::HTML("Please select column contains time data:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
+      }else{
+        proper_columns$time <- input[["select_time_column"]]
       }
+    }else{
+      proper_columns$time <- NULL
     }
   })
   
   observeEvent(input[["select_measurements_column"]], { # check selected column for measurements
     if(input[["select_measurements_column"]] != "no column"){
-      if(class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer" && all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
+      if((class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer") || all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
+        proper_columns$measurements <- NULL
         # display error
         shinyalert::shinyalert("Invalid column type",
                                "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
@@ -524,7 +556,11 @@ app_server <- function(input, output, session) {
                           shiny::HTML("Please select column contains measurements:"),
                           choices = c("no column", colnames(dataset())),
                           selected = "no column")
+      }else{
+        proper_columns$measurements <- input[["select_measurements_column"]]
       } 
+    }else{
+      proper_columns$measurements <- NULL
     }
   })
   
@@ -533,9 +569,11 @@ app_server <- function(input, output, session) {
       output[["map"]] <- renderLeaflet({ # ploting map
         validate(
           need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
-               "No columns selected. Please select columns containing time data, geographic data and measurements.")
+               "No all columns selected. Please select columns containing time data, geographic data and measurements.")
         )
-        plot_map(isolate(dataset()), input[["select_data_type"]], input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]], input[["slider_time_range"]])
+        if(!is.null(proper_columns$geo) && !is.null(proper_columns$time) && !is.null(proper_columns$measurements)){
+          plot_map(isolate(dataset()), input[["select_data_type"]], proper_columns$geo, proper_columns$time, proper_columns$measurements, input[["slider_time_range"]]) 
+        }
       })
     }
   )
