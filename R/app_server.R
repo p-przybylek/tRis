@@ -87,12 +87,13 @@ app_server <- function(input, output, session) {
     output[["select_file"]] <- renderUI({
 
       # validate extension list based on the chosen filetype
-      extensions$list<-switch(input[["select_filetype"]],
-                               "csv" = c("text/csv",'csv'),
-                               "txt" = c("text/plain",".txt"),
-                               "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                               "no_type" = c()
-      )
+      # extensions$list<-switch(input[["select_filetype"]],
+      #                          "csv" = c("text/csv",'csv'),
+      #                          "txt" = c("text/plain",".txt"),
+      #                          "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+      #                          "no_type" = c()
+      #)
+      
       shinyjs::disabled(
         fileInput("select_file", NULL,
                   accept = extensions$list,
@@ -105,11 +106,6 @@ app_server <- function(input, output, session) {
     })
     
   })
-  
-  
-  # observe({
-  #   shinyjs::toggleState("select_separator", (input[["select_filetype"]] != 'xlsx'))
-  # })
 
 
   observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
@@ -124,13 +120,14 @@ app_server <- function(input, output, session) {
   observe({ # when filetype and separator aren chosen, file select is enabled
     if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]== "xlsx"){
       shinyjs::enable("select_file")
-      extensions$list<-switch(input[["select_filetype"]],
-                               "csv" = c("text/csv",'csv'),
-                               "txt" = c("text/plain",".txt"),
-                               "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                               "no_type" = c("")
-                               
-      )
+      # extensions$list<-switch(input[["select_filetype"]],
+      #                          "csv" = c("text/csv",'csv'),
+      #                          "txt" = c("text/plain",".txt"),
+      #                          "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+      #                          "no_type" = c("")
+      # )
+      
+      
       fileInput("select_file", NULL,
                 accept = extensions$list,
                 buttonLabel = "Upload",
@@ -141,10 +138,7 @@ app_server <- function(input, output, session) {
   })
   
   ### navigating
-  
 
-
-  
   
   observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
     if(!is.null(dataset())){
