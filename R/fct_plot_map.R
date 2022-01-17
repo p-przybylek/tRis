@@ -14,6 +14,9 @@
 #' @return map visualization
 #' 
 plot_map <- function(df, map_type, geo_column, date_column, measurements, data_value = NA){
+  if(isFALSE(all(c(geo_column, date_column, measurements) %in% colnames(df)))){
+    return(NULL)
+  }
   if(length(data_value) == 1 && is.na(data_value)){
     data_value <- max(df[[date_column]])
   }

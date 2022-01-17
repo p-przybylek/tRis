@@ -28,7 +28,8 @@ Imports:
     stats,
     forecast,
     ggplot2,
-    plotly
+    plotly, 
+    stringr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2

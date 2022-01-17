@@ -6,7 +6,7 @@ Choose a data file that fulfills the requirements above, to load it to the app. 
 
 ***
 
-The first column should contain the column names.
+The data file must be in UTF-8 encoding. The first column should contain the column names.
 
 ***
 
