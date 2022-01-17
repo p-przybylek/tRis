@@ -26,15 +26,15 @@ To open the application in the browser, click the "open in browser" button or co
 
 1. Covid Poland
 
-Daily coronavirus data from a Polish goverment website archive. 
-Source: https://www.gov.pl/web/koronawirus/wykaz-zarazen-koronawirusem-sars-cov-2
-License: Creative Commons Attribution 3.0 Poland.
+This dataset contains daily coronavirus data from a Polish goverment website archive, to be found [here](https://www.gov.pl/web/koronawirus/wykaz-zarazen-koronawirusem-sars-cov-2). 
+The data is available under the [Creative Commons Attribution 3.0 Poland](https://creativecommons.org/licenses/by/3.0/pl/). It allows the user to share and modify it without limitations. This dataset has been cleaned and modified using covid_poland.R script in data-raw folder.
+
 
 2. Deaths and new cases of HIV
 
-A datasets contains number of deaths and cases of HIV from around the world from years 1990-2017. 
-Source: https://ourworldindata.org/hiv-aids
-License: Open Data Commons Attributions License for non-commercial use.
+This datasets contains number of deaths and cases of HIV from around the world from years 1990-2017, published by [Our WOrld in Data](https://ourworldindata.org/hiv-aids), originally from Global Burden of Disease Collaborative Network.
+It is under the [Open Data Commons Attributions License](https://opendatacommons.org/licenses/by/1-0/) for non-commercial use. It allows the users to freely share, modify and use the data.
+This dataset has been cleaned and modified using deaths_and_new_cases_hiv.R script in data-raw folder.
 
 ### Other datasets
 
