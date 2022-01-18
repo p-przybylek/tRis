@@ -145,10 +145,11 @@ app_server <- function(input, output, session) {
       shinyjs::disable("to_view_data_button1")
       shinyjs::disable("to_visualize_data_button1")
     }
+  })
 
   observeEvent(input[["select_file"]], {
     dataset()
-  }
+  })
 
   
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
