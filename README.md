@@ -31,7 +31,7 @@ The data is available under the [Creative Commons Attribution 3.0 Poland](https:
 
 2. Deaths and new cases of HIV
 
-This datasets contains number of deaths and cases of HIV from around the world from years 1990-2017, published by [Our WOrld in Data](https://ourworldindata.org/hiv-aids), originally from Global Burden of Disease Collaborative Network.
+This datasets contains number of deaths and cases of HIV from around the world from years 1990-2017, published by [Our World in Data](https://ourworldindata.org/hiv-aids), originally from Global Burden of Disease Collaborative Network.
 It is under the [Open Data Commons Attributions License](https://opendatacommons.org/licenses/by/1-0/) for non-commercial use. It allows the users to freely share, modify and use the data.
 This dataset has been cleaned and modified using the `data-raw/deaths_and_new_cases_hiv.R` script.
 
