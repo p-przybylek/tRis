@@ -12,6 +12,7 @@
 #' @importFrom shinyhelper observe_helpers
 #' @importFrom stats na.omit
 #' @importFrom stringr str_conv
+#' @importFrom data.table as.data.table
 #' 
 #' @noRd
 #' 
@@ -61,50 +62,36 @@ app_server <- function(input, output, session) {
     shinyjs::refresh()
   })
   
-  extensions<-reactiveValues(list=NA)
   
-  output[["select_file"]] <- renderUI({ # render select file <-NAPISAĆ funkcję z dwóch poniższych fragmentów!
+  # validate extention list based on the chosen filetype
+  extentions<-reactiveValues(list=NA)
 
-    # validate extension list based on the chosen filetype
-    extensions$list<-switch(input[["select_filetype"]],
-                             "csv" = c("text/csv",'csv'),
-                             "txt" = c("text/plain",".txt"),
-                             "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-                             "no_type" = c("")
-                             )
-
-    shinyjs::disabled(
-      fileInput("select_file", NULL,
-              accept = extensions$list,
-              buttonLabel = "Upload",
-              placeholder = "Please choose a file...")
+  
+  observe(
+    extentions$list<-switch(input[["select_filetype"]],
+                          "csv" = c("text/csv",'csv'),
+                          "txt" = c("text/plain",".txt"),
+                          "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
+                          "no_type" = c("")
+                          )
     )
+  
+  output[["select_file"]] <- renderUI({ # render select file
     
-
+    add_fileInput(extentions$list, disabled=TRUE)
+    
   })
 
   observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
     output[["select_file"]] <- renderUI({
-
-      # validate extension list based on the chosen filetype
-      # extensions$list<-switch(input[["select_filetype"]],
-      #                          "csv" = c("text/csv",'csv'),
-      #                          "txt" = c("text/plain",".txt"),
-      #                          "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-      #                          "no_type" = c()
-      #)
       
-      shinyjs::disabled(
-        fileInput("select_file", NULL,
-                  accept = extensions$list,
-                  buttonLabel = "Upload",
-                  placeholder = "Please choose a file...")
-      )
+      add_fileInput(extentions$list, disabled=TRUE)
     })
     
   })
 
-  observeEvent({input[["select_filetype"]]}, { # when filetype is xlsx, separator options are disabled
+  # when filetype is xlsx, separator options are disabled
+  observeEvent(input[["select_filetype"]], { 
       if(input[["select_filetype"]]=='xlsx'){
         shinyjs::disable("select_separator")
       }else{
@@ -113,45 +100,42 @@ app_server <- function(input, output, session) {
     })
   
 
-  observe({ # when filetype and separator aren chosen, file select is enabled
-    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]== "xlsx"){
+  # when filetype and separator aren chosen't, file select is enabled
+  observe({ 
+    if((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )){
+      add_fileInput(extentions$list, disabled=FALSE)
       shinyjs::enable("select_file")
-      # extensions$list<-switch(input[["select_filetype"]],
-      #                          "csv" = c("text/csv",'csv'),
-      #                          "txt" = c("text/plain",".txt"),
-      #                          "xlsx" = c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".xlsx"),
-      #                          "no_type" = c("")
-      # )
-      
-      
-      fileInput("select_file", NULL,
-                accept = extensions$list,
-                buttonLabel = "Upload",
-                placeholder = "Please choose a file...")
     }else{
+
+      shinyjs::disable("select_file")
+    }
+  })
+  
+  observe({ # when filetype is xlsx, file select is enabled
+    if(input[["select_filetype"]]== "xlsx"){
+      add_fileInput(extentions$list, disabled=FALSE)
+      shinyjs::enable("select_file")
+    }else{
+
       shinyjs::disable("select_file")
     }
   })
   
 
-  ### navigating
-
+#### navigating
   
-  observeEvent(input[["select_file"]], { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
+  observeEvent(input[["select_file"]],
+  { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
     if(!is.null(dataset())){
       shinyjs::enable("to_view_data_button1")
       shinyjs::enable("to_visualize_data_button1")
-    }else{
+    }else{da
       shinyjs::disable("to_view_data_button1")
       shinyjs::disable("to_visualize_data_button1")
     }
   })
-
-  observeEvent(input[["select_file"]], {
-    dataset()
-  })
-
   
+
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "user_data" = "table_view",
@@ -191,13 +175,7 @@ app_server <- function(input, output, session) {
     }
   })
   
-  observe({
-    shinyjs::toggleState("to_view_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
-  })
-  
-  observe({
-    shinyjs::toggleState("to_visualize_data_button2", (input[["select_example_data"]] != "no_data") && (!is.null(dataset())))
-  })
+
   
   shinyjs::onclick("to_view_data_button2", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
@@ -223,11 +201,7 @@ app_server <- function(input, output, session) {
         name <- load(file.path("data", paste0(example_data_name, ".rda")), envir = e)
         
         # display a confirmation
-        shinyalert::shinyalert("Data loaded successfully",
-                               type = "success",
-                               confirmButtonText = "OK",
-                               confirmButtonCol = "#a6a6a6")
-        
+        alert_success("Data loaded successfully")
         output[["map"]] <- renderLeaflet(NULL)
         output[["radiobuttons_time_slider"]] <- renderUI(NULL)
         output[["change_time_range"]] <-renderUI(NULL)
@@ -240,119 +214,50 @@ app_server <- function(input, output, session) {
       data_file <- input[["select_file"]]
       if(is.null(data_file)){return(NULL)}
       
-      # check filetype and alert if invalid
-      filetype <- input[["select_filetype"]]
-      if(filetype == "csv"){
-          if(data_file$type == "text/csv"){
-            user_dataset <- utils::read.csv(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE, encoding = "UTF-8")
-            
-            # display a confirmation
-            shinyalert::shinyalert("Data loaded successfully",
-                                   type = "success",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            
-            # enable buttons
-            shinyjs::enable("to_view_data_button1")
-            shinyjs::enable("to_visualize_data_button1")
-          }
-          else{
-            user_dataset <- NULL
-            
-            # display error
-            shinyalert::shinyalert("Invalid extension",
-                                   "Please choose a .csv file or a valid extension type for your file.",
-                                   type = "error",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            
-            # disable buttons
-            shinyjs::disable("to_view_data_button1")
-            shinyjs::disable("to_visualize_data_button1")
-          }
+    user_dataset<-NULL
+      
+      
+    tryCatch(
+              {data<-utils::read.csv(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE, encoding = "UTF-8")
+                if(encoding_check(data)){
+                  alert_success("Data loaded successfully")
+                  shinyjs::enable("to_view_data_button1")
+                  shinyjs::enable("to_visualize_data_button1")
+                  user_dataset <- data}
+                else{
+                  shinyjs::disable("to_view_data_button1")
+                  shinyjs::disable("to_visualize_data_button1")
+                  alert_error("File encoding error",
+                              "Your file appears not to be in UTF-8 encoding, as reccomended. Covert it before uploading")
+                  
+                  user_dataset<-NULL}
+              },
+              error=function(cond){
+                  shinyjs::disable("to_view_data_button1")
+                  shinyjs::disable("to_visualize_data_button1")
+                  alert_error("File reading error",
+                              cond)
+                  
+                  user_dataset <- NULL },
+              warning=function(cond){
+                  shinyjs::disable("to_view_data_button1")
+                  shinyjs::disable("to_visualize_data_button1")
+                  alert_error("File reading warning",
+                              cond)
+                
+                  user_dataset <- NULL}
+    )
+      
 
-        }
-        else if(filetype == "txt"){
+    output[["map"]] <- renderLeaflet(NULL)
+    output[["radiobuttons_time_slider"]] <- renderUI(NULL)
+    output[["change_time_range"]] <-renderUI(NULL)
+    return(data.table::as.data.table(user_dataset))
 
-          if( data_file$type == "text/plain"){
-            user_dataset <- utils::read.table(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE)
-            
-            # display a confirmation
-            shinyalert::shinyalert("Data loaded successfully",
-                                   type = "success",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            # enable buttons
-            shinyjs::enable("to_view_data_button1")
-            shinyjs::enable("to_visualize_data_button1")
-          }
-          else{
-            user_dataset <- NULL
-            
-            # display error
-            shinyalert::shinyalert("Invalid extension",
-                                   "Please choose a .txt file or a valid extension type for your file.",
-                                   type = "error",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            
-            # disable buttons
-            shinyjs::disable("to_view_data_button1")
-            shinyjs::disable("to_visualize_data_button1")
-          }
-        }
-        else if(filetype == 'xlsx'){
-
-          if(data_file$type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
-            user_dataset <- openxlsx::read.xlsx(data_file$datapath)
-            
-            # display a confirmation
-            shinyalert::shinyalert("Data loaded successfully",
-                                   type = "success",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            
-            # enable buttons
-            shinyjs::enable("to_view_data_button1")
-            shinyjs::enable("to_visualize_data_button1")
-          }
-          else{
-            user_dataset <- NULL
-            
-            # display error
-            shinyalert::shinyalert("Invalid extension",
-                                   "Please choose a .xlsx file or a valid extension type for your file.",
-                                   type = "error",
-                                   confirmButtonText = "OK",
-                                   confirmButtonCol = "#a6a6a6")
-            
-            # disable buttons
-            shinyjs::disable("to_view_data_button1")
-            shinyjs::disable("to_visualize_data_button1")
-
-          }
-          
-        }
-      else{
-        user_dataset <- NULL
-        
-        # display error
-        shinyalert::shinyalert("Invalid extension type",
-                               type = "error",
-                               confirmButtonText = "OK",
-                               confirmButtonCol = "#a6a6a6")
-        
-        # disable buttons
-        shinyjs::disable("to_view_data_button1")
-        shinyjs::disable("to_visualize_data_button1")
-      }
-      output[["map"]] <- renderLeaflet(NULL)
-      output[["radiobuttons_time_slider"]] <- renderUI(NULL)
-      output[["change_time_range"]] <-renderUI(NULL)
-      return(as.data.table(user_dataset))
     }
   })
   
+
   ### the view data in a table interface
   
   shinyjs::onclick("return_to_select_data_button1", { # back to loading example or user data interface
