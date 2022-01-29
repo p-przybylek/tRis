@@ -236,14 +236,14 @@ app_server <- function(input, output, session) {
                   shinyjs::disable("to_view_data_button1")
                   shinyjs::disable("to_visualize_data_button1")
                   alert_error("File reading error",
-                              cond)
+                              "Something went wrong")
                   
                   user_dataset <- NULL },
               warning=function(cond){
                   shinyjs::disable("to_view_data_button1")
                   shinyjs::disable("to_visualize_data_button1")
                   alert_error("File reading warning",
-                              cond)
+                              "something went wrong")
                 
                   user_dataset <- NULL}
     )
