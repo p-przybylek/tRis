@@ -5,7 +5,7 @@ if (!require(dplyr)) install.packages("dplyr")
 library(dplyr)
 if (!require(tidyr)) install.packages("tidyr")
 library(tidyr)
-if (!require(tidyr)) install.packages("data.table")
+if (!require(data.table)) install.packages("data.table")
 library(data.table)
 
 ### list of file names in 'covid_poland' directory
