@@ -277,11 +277,13 @@ app_server <- function(input, output, session) {
     utils::tail(dataset(), 20)
   },
   options = list(scrollX = TRUE,
+                 scrollY = TRUE,
                  deferRender = TRUE,
                  paging = TRUE,
                  searching = FALSE,
                  pageLength = 5,
-                 lengthMenu = c(5, 10),
+                 lengthMenu = 5,
+                 lengthChange = FALSE,
                  server = TRUE
   ), 
   rownames = FALSE
