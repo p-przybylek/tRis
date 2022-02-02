@@ -11,6 +11,12 @@ The purpose of the application is to facilitate the understanding of certain dep
 
 The application works with RStudio and the Google Chrome browser.
 
+Before installing the package, please follow the step below:
+
+```
+install.packages(c("devtools", "rnaturalearthdata"))
+```
+
 Installation:
 ```
 devtools::install_github("p-przybylek/tRis")
