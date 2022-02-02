@@ -193,7 +193,7 @@ app_server <- function(input, output, session) {
       example_data_name <- input[["select_example_data"]]
       if(example_data_name != "no_data"){
         e <- new.env()
-        name <- load(file.path("data", paste0(example_data_name, ".rda")), envir = e)
+        name <- load(app_sys(file.path("data", paste0(example_data_name, ".rda"))), envir = e)
         
         # display a confirmation
         alert_success("Data loaded successfully")
