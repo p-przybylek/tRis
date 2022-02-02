@@ -13,7 +13,4 @@ alert_success <- function(content){
                            type = "success",
                            confirmButtonText = "OK",
                            confirmButtonCol = "#a6a6a6")
-  
-
-
 }

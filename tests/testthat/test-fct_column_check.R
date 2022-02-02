@@ -29,7 +29,9 @@ test_that("validate geo column for ISO aplha-1 and aplha-2 codes works", {
   expect_true(geo_column_check(c("004", "AAA"), "World"))
 })
 
-# not working - testthat can't use dataset with list of TERYT
-# test_that("validate geo column for TERYT codes works", {
-#   expect_false(geo_column_check(c("32", "02"), "Poland"))
-# })
+test_that("validate geo column for TERYT codes works", {
+  expect_false(geo_column_check(c("32", "02"), "Poland"))
+  expect_false(geo_column_check(c("t32", "t02"), "Poland"))
+  expect_true(geo_column_check(c("AAAA", "02"), "Poland"))
+  expect_true(geo_column_check(c("000000", "0000000000000"), "Poland"))
+})

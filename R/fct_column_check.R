@@ -14,13 +14,13 @@ time_column_check <- function(vector_time){
       check_type <- (unique(nchar(sub("\\..*", "", vector_time))) != 4)
       if(length(check_type) != 1){
         val <- TRUE
-      }else if(check_type && any(is.na(as.Date(vector_time, format="%Y-%m-%d")))){
+      }else if(check_type && any(is.na(suppressWarnings(as.Date(vector_time, format="%Y-%m-%d"))))){
         val <- TRUE
-      }else if(!check_type && any(is.na(as.Date(vector_time, format="%Y.%m.%d")))){
+      }else if(!check_type && any(is.na(suppressWarnings(as.Date(vector_time, format="%Y.%m.%d"))))){
         val <- TRUE
       }
     }else{
-      if(is.na(all(as.integer(vector_time))) || isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
+      if(is.na(all(suppressWarnings(as.integer(vector_time)))) || isFALSE(all(as.integer(vector_time) >= 1000)) || isFALSE(all(as.integer(vector_time) <= as.integer(format(Sys.Date(), "%Y"))))){
         val <- TRUE
       }
     }
@@ -41,9 +41,10 @@ geo_column_check <- function(vector_geo, data_type){
   len <- unique(nchar(vector_geo))
   val <- FALSE
   if(data_type == "Poland"){ # properly format of a column is TERYT
-    e <- new.env()
-    name <- load(file.path("data", "poland_teryt.rda"), envir = e)
-    teryt <- e[[name]]$teryt
+    #e <- new.env()
+    #name <- load(file.path("data", "poland_teryt.rda"), envir = e)
+    #teryt <- e[[name]]$teryt
+    teryt <- (tRis::poland_teryt)$teryt
     if(length(len) != 1 && length(len) != 2){
       val <- TRUE
     }else{
@@ -51,12 +52,12 @@ geo_column_check <- function(vector_geo, data_type){
         val <- TRUE
       }else{
         if(all(len %in% c(2,4))){
-          if(all(is.na(as.numeric(vector_geo))) || !all(vector_geo %in% c("00", "0000", teryt))){
+          if(all(is.na(suppressWarnings(as.numeric(vector_geo)))) || !all(vector_geo %in% c("00", "0000", teryt))){
             val <- TRUE
           }
         }else if(all(len %in% c(3,5))){
           vector_geo_new <- substr(vector_geo, 2, nchar(vector_geo))
-          if(all(is.na(as.numeric(vector_geo_new))) || !all(vector_geo_new %in% c("00", "0000", teryt))){
+          if(all(is.na(suppressWarnings(as.numeric(vector_geo_new)))) || !all(vector_geo_new %in% c("00", "0000", teryt))){
             val <- TRUE
           }
         }

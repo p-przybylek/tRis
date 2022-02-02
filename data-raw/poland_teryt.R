@@ -21,9 +21,6 @@ teryt <- teryt[,c("NAZWA", "NAZWA_DOD", "TERYT")]
 ### changing the column names
 colnames(teryt) <- c("name", "administrative_division_level", "teryt")
 
-### changing encoding 
-teryt$name <- iconv(teryt$name, 'Windows-1250', 'UTF-8')
-teryt$administrative_division_level <- iconv(teryt$administrative_division_level, 'Windows-1250', 'UTF-8')
-
 poland_teryt <- teryt
 usethis::use_data(poland_teryt, overwrite = TRUE, compress='xz')
+save(poland_teryt, file = './data/poland_teryt.rda', compress = 'xz') # save RDA file again, because before file saved with Unicode not UTF-8

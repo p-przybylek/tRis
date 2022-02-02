@@ -29,5 +29,4 @@ add_fileInput <- function(extention_list, disabled){
               placeholder = "Please choose a file...")
     
   }
-  #browser()
 }

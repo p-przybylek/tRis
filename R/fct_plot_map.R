@@ -14,12 +14,15 @@
 #' @return map visualization
 #' 
 plot_map <- function(df, map_type, geo_column, date_column, measurements, data_value = NA){
+  # check if the given columns are in the dataset
   if(isFALSE(all(c(geo_column, date_column, measurements) %in% colnames(df)))){
     return(NULL)
   }
+  # setting data_value if NA
   if(length(data_value) == 1 && is.na(data_value)){
     data_value <- max(df[[date_column]])
   }
+  
   if(map_type == "Poland"){
     vector_geo <- as.character(df[[geo_column]])
     if(any(unique(nchar(vector_geo)) %in% c(1,3))){
@@ -28,6 +31,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       df[[geo_column]] <- vector_geo
     }
   }
+  
   data.table::setkeyv(df, date_column)
   if(length(data_value) == 1){
     df_plot <- df[df[[date_column]] == data_value, c(date_column, geo_column, measurements), with=FALSE] 
@@ -46,6 +50,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       colnames(df_plot) <- c(geo_column, measurements) 
     }
   }
+  # preparing data for visualization and visualize it
   if(map_type == "Poland"){
     vector_geo <- as.character(df_plot[[geo_column]])
     len <- unique(nchar(vector_geo))
