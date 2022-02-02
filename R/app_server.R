@@ -24,7 +24,7 @@ app_server <- function(input, output, session) {
   
   ### add helpfiles to app
   
-  shinyhelper::observe_helpers(help_dir = app_sys("helpfiles"))
+  shinyhelper::observe_helpers(help_dir = "inst/app/helpfiles")
 
   ### the start interface 
   
@@ -192,15 +192,14 @@ app_server <- function(input, output, session) {
     if(data_load() == "example_data"){
       example_data_name <- input[["select_example_data"]]
       if(example_data_name != "no_data"){
-        e <- new.env()
-        name <- load(app_sys(file.path("data", paste0(example_data_name, ".rda"))), envir = e)
+        data <- eval(parse(text = paste0("tRis::", example_data_name)))
         
         # display a confirmation
         alert_success("Data loaded successfully")
         output[["map"]] <- renderLeaflet(NULL)
         output[["radiobuttons_time_slider"]] <- renderUI(NULL)
         output[["change_time_range"]] <-renderUI(NULL)
-        return(e[[name]])
+        return(data)
       }else{
         return(NULL)
       }
