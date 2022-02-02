@@ -41,7 +41,7 @@ app_ui <- function(request) {
                                     shinydashboard::tabItems(
                                       shinydashboard::tabItem(tabName = "start",
                                                               fluidRow(column(12, align = "center", 
-                                                                              div(id = "start-text", includeMarkdown(file.path("inst", "app", "App_description.md"))))),
+                                                                              div(id = "start-text", includeMarkdown(app_sys("app/App_description.md"))))),
                                                               br(),
                                                               fluidRow(column(6, div(id = "box-button-right", add_helper(actionButton("to_user_data_button", shiny::HTML("upload own <br/> data")), "User_data"))),
                                                                        column(6, div(id = "box-button-left", add_helper(actionButton("to_example_data_button", shiny::HTML("select example <br/> data")), "Example_data"))))),
