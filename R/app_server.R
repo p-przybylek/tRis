@@ -268,7 +268,7 @@ app_server <- function(input, output, session) {
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
   
-  output[["data_table"]] <- DT::renderDataTable({
+  output[["data_table"]] <- DT::renderDataTable({ # create table with records
     utils::tail(dataset(), 20)
   },
   options = list(scrollX = TRUE,
