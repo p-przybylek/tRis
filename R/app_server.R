@@ -134,7 +134,6 @@ app_server <- function(input, output, session) {
       shinyjs::disable("to_visualize_data_button1")
     }
   })
-  
 
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
@@ -149,8 +148,6 @@ app_server <- function(input, output, session) {
                             "visualization" = "user_data")
     shinydashboard::updateTabItems(session, "interfaces", new_interface)
   })
-  
-
   
   ### the loading example data interface
   
@@ -174,8 +171,6 @@ app_server <- function(input, output, session) {
       shinyjs::disable("to_visualize_data_button2")
     }
   })
-  
-
   
   shinyjs::onclick("to_view_data_button2", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
@@ -376,14 +371,12 @@ app_server <- function(input, output, session) {
         }
         val <- geo_column_check(vector_geo, "Poland")
         if(val){
-          
           proper_columns$geo <- NULL
+          
           # display error
-          shinyalert::shinyalert("Invalid column type",
-                                 "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the TERYT format (tXX and tXXXX or XX and XXXX) or change type od data for 'World'.",
-                                 type = "error",
-                                 confirmButtonText = "OK",
-                                 confirmButtonCol = "#a6a6a6")
+          alert_error("Invalid column type",
+                      "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the TERYT format (tXX and tXXXX or XX and XXXX) or change type od data for 'World'.")
+          
           
           # return select input to default state
           updateSelectInput(session, "select_geo_column", 
@@ -396,14 +389,11 @@ app_server <- function(input, output, session) {
       }else if(input[["select_data_type"]] == "World"){ # properly format of a column is ISO 3166-1
         val <- geo_column_check(vector_geo, "World")
         if(val){
-          
           proper_columns$geo <- NULL
+          
           # display error
-          shinyalert::shinyalert("Invalid column type",
-                                 "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the ISO 3166-1 format or change type od data for 'Poland'.",
-                                 type = "error",
-                                 confirmButtonText = "OK",
-                                 confirmButtonCol = "#a6a6a6")
+          alert_error("Invalid column type",
+                      "The selected column for geografic data contains an invalid format. Please select a column that contains the one of the ISO 3166-1 format or change type od data for 'Poland'.")
           
           # return select input to default state
           updateSelectInput(session, "select_geo_column", 
@@ -427,12 +417,10 @@ app_server <- function(input, output, session) {
       if(val){
         
         proper_columns$time <- NULL
+        
         # display error
-        shinyalert::shinyalert("Invalid column type",
-                               "The selected column for dates contains an invalid format. Please select a column that contains the date format consistent with the one adopted by the application: YYYY or YYYY-MM-DD or YYYY.MM.DD.",
-                               type = "error",
-                               confirmButtonText = "OK",
-                               confirmButtonCol = "#a6a6a6")
+        alert_error("Invalid column type",
+                    "The selected column for dates contains an invalid format. Please select a column that contains the date format consistent with the one adopted by the application: YYYY or YYYY-MM-DD or YYYY.MM.DD.")
         
         # return select input to default state
         updateSelectInput(session, "select_time_column", 
@@ -452,12 +440,10 @@ app_server <- function(input, output, session) {
       if((class(dataset()[[input[["select_measurements_column"]]]]) != "numeric" && class(dataset()[[input[["select_measurements_column"]]]]) != "integer") || all(is.na(dataset()[[input[["select_measurements_column"]]]]))){
         
         proper_columns$measurements <- NULL
+        
         # display error
-        shinyalert::shinyalert("Invalid column type",
-                               "The selected column for measurements contains non-numeric values. Please select a column with numeric values.",
-                               type = "error",
-                               confirmButtonText = "OK",
-                               confirmButtonCol = "#a6a6a6")
+        alert_error("Invalid column type", 
+                    "The selected column for measurements contains non-numeric values. Please select a column with numeric values.")
         
         # return select input to default state
         updateSelectInput(session, "select_measurements_column", 
@@ -501,36 +487,7 @@ app_server <- function(input, output, session) {
     output[["change_time_range"]] <- renderUI({
       if(input[["select_time_column"]] != "no column"){
         vector_time <- isolate(dataset())[[input[["select_time_column"]]]]
-        if(is.null(vector_time)) return(NULL)
-        if(unique(nchar(as.character(vector_time))) == 4){
-          if(input[["check_for_time_slider"]] == "one_value"){
-            val <- max(vector_time)
-            title <- "Time value for visualization:"
-          }else{
-            val <- c(max(vector_time), max(vector_time))
-            title <- "Time range for visualization:"
-          }
-          sliderInput("slider_time_range", title, 
-                      min = min(vector_time),
-                      max = max(vector_time),
-                      value = val,
-                      sep = "",
-                      step = abs(vector_time[1]-vector_time[2]))
-        }else{
-          format <- ifelse(substr(vector_time[1],5,5) == "-", "%Y-%m-%d", "%Y.%m.%d")
-          if(input[["check_for_time_slider"]] == "one_value"){
-            val <- as.Date(max(vector_time))
-            title <- "Time value for visualization:"
-          }else{
-            val <- c(as.Date(max(vector_time)), as.Date(max(vector_time)))
-            title <- "Time range for visualization:"
-          }
-          sliderInput("slider_time_range", title, 
-                      min = as.Date(min(vector_time)),
-                      max = as.Date(max(vector_time)),
-                      value = val,
-                      timeFormat = format)
-        }
+        add_sliderInput(vector_time, input[["check_for_time_slider"]])
       }
     })
   })
@@ -560,6 +517,7 @@ app_server <- function(input, output, session) {
       # create dataset for predictions
       area_code <- sub("\\;.*", "", input[["map_shape_click"]]$id)
       setkeyv(isolate(dataset()), input[["select_geo_column"]])
+      
       #prediction_area$data <- dataset()[c(area_code, paste0("t", area_code)), c(input[["select_geo_column"]], input[["select_time_column"]], input[["select_measurements_column"]]), with=FALSE]
       if(input[["select_data_type"]] == "Poland"){
          area_code=paste0("t", area_code)

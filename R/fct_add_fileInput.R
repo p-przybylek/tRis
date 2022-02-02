@@ -7,26 +7,18 @@
 #' 
 #' @return a shiny fileInput
 #' 
-#' 
-
 add_fileInput <- function(extention_list, disabled){
-  
-
   if(disabled){
-    
       shinyjs::disabled(
         fileInput("select_file", NULL,
                   accept = extention_list,
                   buttonLabel = "Upload",
-                  placeholder = "Please choose a file...")
-      )
-      
+                  placeholder = "Please choose a file..."))
     }
   else{
     fileInput("select_file", NULL,
               accept = extention_list,
               buttonLabel = "Upload",
               placeholder = "Please choose a file...")
-    
   }
 }
