@@ -110,6 +110,10 @@ golem_add_external_resources <- function(){
   add_resource_path(
     'www', app_sys('app/www')
   )
+  
+  add_resource_path(
+    'helpfiles', app_sys('app/helpfiles')
+  )
  
   tags$head(
     favicon(),
@@ -118,6 +122,6 @@ golem_add_external_resources <- function(){
       app_title = 'tRis'
     ),
     shinyjs::useShinyjs(),
-    shinyalert::useShinyalert()
+    shinyalert::useShinyalert(force = TRUE)
   )
 }
