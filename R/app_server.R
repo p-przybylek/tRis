@@ -24,7 +24,7 @@ app_server <- function(input, output, session) {
   
   ### add helpfiles to app
   
-  shinyhelper::observe_helpers(help_dir = "inst/app/helpfiles")
+  shinyhelper::observe_helpers(help_dir = system.file("app", "helpfiles", package = "tRis"))
 
   ### the start interface 
   

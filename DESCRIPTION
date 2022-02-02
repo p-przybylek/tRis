@@ -1,6 +1,6 @@
 Package: tRis
 Title: Time Series Visualization
-Version: 0.0.0.9000
+Version: 1.0
 Authors@R: c(person('Paulina', 'Przybyłek', email = 'pp.paulinaprzybylek@gmail.com', role = c('cre', 'aut')),
              person('Martyna', 'Majchrzak', email = 'martyna.majchrzak19@gmail.com', role = 'aut'),
              person('Elżbieta', 'Sienkiewicz', email = 'elzbieta.sienkiewicz@pw.edu.pl', role = c('aut', 'ths')))

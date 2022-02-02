@@ -47,7 +47,7 @@ plot_map <- function(df, map_type, geo_column, date_column, measurements, data_v
       date_range <- seq(data_value[1], data_value[2])
       df_plot <- df[df[[date_column]] %in% date_range, c(date_column, geo_column, measurements), with=FALSE]
       df_plot <- data.table::as.data.table(stats::aggregate(df_plot[[measurements]], list(df_plot[[geo_column]]), FUN=df_sum))
-      colnames(df_plot) <- c(geo_column, measurements) 
+      colnames(df_plot) <- c(geo_column, measurements)
     }
   }
   # preparing data for visualization and visualize it
