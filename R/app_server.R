@@ -435,6 +435,7 @@ app_server <- function(input, output, session) {
   observe(
     if(!is.null(input[["slider_time_range"]]) && !is.infinite(input[["slider_time_range"]])){
       output[["map"]] <- renderLeaflet({ # ploting map
+        shinyjs::disable("to_prediction_button")
         validate(
           need(input[["select_geo_column"]] != "no column" && input[["select_time_column"]] != "no column" && input[["select_measurements_column"]] != "no column",
                "No all columns selected. Please select columns containing time data, geographic data and measurements.")
