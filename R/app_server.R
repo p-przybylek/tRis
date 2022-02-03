@@ -62,7 +62,6 @@ app_server <- function(input, output, session) {
     shinyjs::refresh()
   })
   
-  
   # validate extention list based on the chosen filetype
   extentions<-reactiveValues(list=NA)
 
@@ -77,17 +76,7 @@ app_server <- function(input, output, session) {
     )
   
   output[["select_file"]] <- renderUI({ # render select file
-    
     add_fileInput(extentions$list, disabled=TRUE)
-    
-  })
-
-  observeEvent(input[["return_to_start_button1"]],{ # reload fileInput when user returns to start panel
-    output[["select_file"]] <- renderUI({
-      
-      add_fileInput(extentions$list, disabled=TRUE)
-    })
-    
   })
 
   # when filetype is xlsx, separator options are disabled
@@ -98,43 +87,43 @@ app_server <- function(input, output, session) {
         shinyjs::enable("select_separator")
       }
     })
-  
 
   # when filetype and separator aren chosen't, file select is enabled
   observe({ 
-    if((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )){
-      add_fileInput(extentions$list, disabled=FALSE)
+    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]=="xlsx"){
       shinyjs::enable("select_file")
     }else{
-
       shinyjs::disable("select_file")
     }
   })
   
-  observe({ # when filetype is xlsx, file select is enabled
-    if(input[["select_filetype"]]== "xlsx"){
-      add_fileInput(extentions$list, disabled=FALSE)
-      shinyjs::enable("select_file")
+  observeEvent(input[["select_filetype"]], {
+    if(((input[["select_filetype"]] != "no_type") && (input[["select_separator"]] != "no_sep" )) || input[["select_filetype"]]=="xlsx"){
+      output[["select_file"]] <- renderUI({ # render select file
+        add_fileInput(extentions$list, disabled=FALSE)
+      })
     }else{
-
-      shinyjs::disable("select_file")
+      output[["select_file"]] <- renderUI({ # render select file
+        add_fileInput(extentions$list, disabled=TRUE)
+      })
     }
   })
   
-
-#### navigating
-  
-  observeEvent(input[["select_file"]],
-  { # when example data isn't choosen, buttons to view and visualization interfaces are disabled
-    if(!is.null(dataset())){
+  observeEvent(input[["select_file"]], { # when file isn't choosen, buttons to view and visualization interfaces are disabled
+    if(!is.null(dataset()) && (nrow(dataset()) > 0 && ncol(dataset()) > 0)){
       shinyjs::enable("to_view_data_button1")
       shinyjs::enable("to_visualize_data_button1")
-    }else{da
+    }else{
       shinyjs::disable("to_view_data_button1")
       shinyjs::disable("to_visualize_data_button1")
     }
   })
-
+  
+  observeEvent(input[["select_filetype"]], { # when filetype change, buttons are disabled and wait for select a file
+    shinyjs::disable("to_view_data_button1")
+    shinyjs::disable("to_visualize_data_button1")
+  })
+  
   shinyjs::onclick("to_view_data_button1", { # going to view data in a table interface
     new_interface <- switch(input[["interfaces"]],
                             "user_data" = "table_view",
@@ -209,39 +198,26 @@ app_server <- function(input, output, session) {
       if(is.null(data_file)){return(NULL)}
       
     user_dataset<-NULL
-      
-      
+    
     tryCatch(
               {data<-utils::read.csv(file=data_file$datapath, sep=input[["select_separator"]], header=TRUE, encoding = "UTF-8")
                 if(encoding_check(data)){
                   alert_success("Data loaded successfully")
-                  shinyjs::enable("to_view_data_button1")
-                  shinyjs::enable("to_visualize_data_button1")
                   user_dataset <- data}
                 else{
-                  shinyjs::disable("to_view_data_button1")
-                  shinyjs::disable("to_visualize_data_button1")
                   alert_error("File encoding error",
                               "Your file appears not to be in UTF-8 encoding, as reccomended. Covert it before uploading")
-                  
                   user_dataset<-NULL}
               },
               error=function(cond){
-                  shinyjs::disable("to_view_data_button1")
-                  shinyjs::disable("to_visualize_data_button1")
                   alert_error("File reading error",
                               "Something went wrong")
-                  
                   user_dataset <- NULL },
               warning=function(cond){
-                  shinyjs::disable("to_view_data_button1")
-                  shinyjs::disable("to_visualize_data_button1")
                   alert_error("File reading warning",
                               "something went wrong")
-                
                   user_dataset <- NULL}
     )
-      
 
     output[["map"]] <- renderLeaflet(NULL)
     output[["radiobuttons_time_slider"]] <- renderUI(NULL)
@@ -250,7 +226,6 @@ app_server <- function(input, output, session) {
 
     }
   })
-  
 
   ### the view data in a table interface
   
