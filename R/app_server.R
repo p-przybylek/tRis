@@ -480,14 +480,13 @@ app_server <- function(input, output, session) {
                      selected = "one_value")
       }
     })
-  })
-  
-  observeEvent(input[["check_for_time_slider"]], { # creating slider for choosing a time range for visualization
-    output[["change_time_range"]] <- renderUI({
-      if(input[["select_time_column"]] != "no column"){
-        vector_time <- isolate(dataset())[[input[["select_time_column"]]]]
-        add_sliderInput(vector_time, input[["check_for_time_slider"]])
-      }
+    observeEvent({input[["check_for_time_slider"]]}, { # creating slider for choosing a time range for visualization
+      output[["change_time_range"]] <- renderUI({
+        if(input[["select_time_column"]] != "no column"){
+          vector_time <- isolate(dataset())[[input[["select_time_column"]]]]
+          add_sliderInput(vector_time, input[["check_for_time_slider"]])
+        }
+      })
     })
   })
   
